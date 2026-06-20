@@ -24,9 +24,11 @@ export default function Fixtures() {
                 {matches.map(match => {
                     const date = new Date(match.utcDate)
                     const day = date.toLocaleDateString('en-GB', {
-                        weekday: 'long', day: 'numeric', month: 'long'
+                        timeZone: 'Europe/Helsinki',
+                        weekday: 'long', day: 'numeric', month: 'long',
                     })
                     const time = date.toLocaleTimeString('en-GB', {
+                        timeZone: 'Europe/Helsinki',
                         hour: '2-digit', minute: '2-digit'
                     })
 
@@ -34,7 +36,7 @@ export default function Fixtures() {
                         <div key={match.id} className="fixture-row">
                             <div className="fixture-row__date">
                                 <span className="fixture-row__day">{day}</span>
-                                <span className="fixture-row__time">{time}</span>
+                                <span className="fixture-row__time">{time}<span className="timezone-label">EEST</span></span>
                             </div>
                             <div className="fixture-row__match">
                                 <div className="fixture-row__team">

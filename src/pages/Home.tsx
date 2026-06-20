@@ -33,6 +33,7 @@ const SLIDES = [
 
 export default function Home() {
     const [recentMatches, setRecentMatches] = useState<Match[]>([])
+    const [liveMatches, setLiveMatches] = useState<Match[]>([])
     const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([])
     const [scorers, setScorers] = useState<Scorer[]>([])
     const [totalMatches, setTotalMatches] = useState(0)
@@ -52,15 +53,17 @@ export default function Home() {
 
         Promise.all([
             fetch('/api/v4/competitions/WC/standings', { headers }).then(r => r.json()),
+            fetch('/api/v4/competitions/WC/matches?status=LIVE', { headers }).then(r => r.json()),
             fetch('/api/v4/competitions/WC/matches?status=FINISHED', { headers }).then(r => r.json()),
             fetch('/api/v4/competitions/WC/matches?status=SCHEDULED', { headers }).then(r => r.json()),
             fetch('/api/v4/competitions/WC/scorers?season=2026&limit=10', { headers }).then(r => r.json()),
             fetch('/api/v4/competitions/WC/matches', { headers }).then(r => r.json()),
-        ]).then(([standingsData, finishedData, scheduledData, scorersData, allMatchesData]) => {
+        ]).then(([standingsData, liveData, finishedData, scheduledData, scorersData, allMatchesData]) => {
             if (cancelled) return
             // setStandings(standingsData.standings?.[0]?.table?.slice(0, 5) || [])
+            setLiveMatches(liveData.matches?.slice(0,1) || [])
             setRecentMatches(finishedData.matches?.slice(-6).reverse() || [])
-            setUpcomingMatches(scheduledData.matches?.slice(0, 5) || [])
+            setUpcomingMatches(scheduledData.matches?.slice(0, 3) || [])
             setScorers(scorersData.scorers || [])
             setTotalMatches(allMatchesData.resultSet?.count || 104)
             setPlayedMatches(finishedData.matches?.length || 0)
@@ -133,48 +136,67 @@ export default function Home() {
                     </table>
                 </div>
 
-                <div className="home-card slide-up delay-02">
-                    <h3 className="home-card__title">📅 Upcoming Matches</h3>
-                    {upcomingMatches.length > 0 ? (
-                        <div className="next-match">
-                            {upcomingMatches.map(match => (
-                                <div key={match.id} className="next-match__item">
-                                    <div className="next-match__teams">
-                                        <div className="next-match__team">
-                                            <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={32} height={32} />
-                                            <span>{match.homeTeam.shortName}</span>
-                                        </div>
-
-                                        <div className="next-match__middle">
-                                            <span className="next-match__vs">VS</span>
-                                        </div>
-
-                                        <div className="next-match__team">
-                                            <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={32} height={32} />
-                                            <span>{match.awayTeam.shortName}</span>
-                                        </div>
-                                    </div>
-
-                                    <p className="next-match__date">
-                                        Matchday {match.matchday} ·{' '}
-                                        {new Date(match.utcDate).toLocaleDateString('en-GB', {
-                                            weekday: 'short',
-                                            day: 'numeric',
-                                            month: 'short'
-                                        })}
-                                        {' · '}
-                                        {new Date(match.utcDate).toLocaleTimeString('en-GB', {
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
-                                    </p>
+                <div className="home-second">
+                    <div className="home-card slide-up delay-02">
+                        <h3 className="home-card__title">🔴 Live Match</h3>
+                        {liveMatches.length > 0 ? (
+                            liveMatches.map(match => (
+                                <div key={match.id}>
+                                    {match.homeTeam.shortName} vs {match.awayTeam.shortName}
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="no-data">No upcoming matches</p>
-                    )}
+                            ))
+                        ) : (
+                            <p className="no-data">No match is live at the moment</p>
+                        )}
+                    </div>
+
+                    <div className="home-card slide-up delay-02">
+                        <h3 className="home-card__title">📅 Upcoming Matches</h3>
+                        {upcomingMatches.length > 0 ? (
+                            <div className="next-match">
+                                {upcomingMatches.map(match => (
+                                    <div key={match.id} className="next-match__item">
+                                        <div className="next-match__teams">
+                                            <div className="next-match__team">
+                                                <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={32} height={32} />
+                                                <span>{match.homeTeam.shortName}</span>
+                                            </div>
+
+                                            <div className="next-match__middle">
+                                                <span className="next-match__vs">VS</span>
+                                            </div>
+
+                                            <div className="next-match__team">
+                                                <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={32} height={32} />
+                                                <span>{match.awayTeam.shortName}</span>
+                                            </div>
+                                        </div>
+
+                                        <p className="next-match__date">
+                                            Matchday {match.matchday} ·{' '}
+                                            {new Date(match.utcDate).toLocaleDateString('en-GB', {
+                                                timeZone: 'Europe/Helsinki',
+                                                weekday: 'short',
+                                                day: 'numeric',
+                                                month: 'short'
+                                            })}
+                                            {' · '}
+                                            {new Date(match.utcDate).toLocaleTimeString('en-GB', {
+                                                timeZone: 'Europe/Helsinki',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                            <span className="timezone-label">EEST</span>
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="no-data">No upcoming matches</p>
+                        )}
+                    </div>
                 </div>
+                
             </div>
 
             {/* Row 2 — Tournament Progress + Carousel & Scorers */}

@@ -12,6 +12,12 @@
     gap: 1.25rem;
 }
 
+.home-second {
+    display: grid;
+    grid-template-rows: 200px 1fr;
+    gap: 1.25rem;
+}
+
 .home-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -85,6 +91,14 @@
 }
 
 /* Next Match */
+
+.timezone-label {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
 .next-match {
     display: grid;
     gap: 1rem;

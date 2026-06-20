@@ -41,14 +41,16 @@ export default function TeamPage() {
     const [matches, setMatches] = useState<Match[]>([])
     const [loading, setLoading] = useState(true)
 
+    const API_BASE = 'https://api.football-data.org/v4'
+
     useEffect(() => {
         if (!id) return
 
         const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
 
         Promise.all([
-            fetch(`/api/v4/teams/${id}`, { headers }).then(r => r.json()),
-            fetch(`/api/v4/teams/${id}/matches?status=FINISHED&limit=5`, { headers }).then(r => r.json())
+            fetch(`${API_BASE}/teams/${id}`, { headers }).then(r => r.json()),
+            fetch(`${API_BASE}/teams/${id}/matches?status=FINISHED&limit=5`, { headers }).then(r => r.json())
         ]).then(([teamData, matchesData]) => {
             setTeam(teamData)
             setMatches(matchesData.matches || [])

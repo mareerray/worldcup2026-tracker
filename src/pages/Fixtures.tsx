@@ -5,8 +5,10 @@ export default function Fixtures() {
     const [matches, setMatches] = useState<Match[]>([])
     const [loading, setLoading] = useState(true)
 
+    const API_BASE = 'https://api.football-data.org/v4'
+    
     useEffect(() => {
-        fetch('/api/v4/competitions/WC/matches?status=SCHEDULED', {
+        fetch(`${API_BASE}/competitions/WC/matches?status=SCHEDULED`, {
             headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
         })
             .then(res => res.json())

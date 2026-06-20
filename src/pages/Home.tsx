@@ -49,15 +49,16 @@ export default function Home() {
         let cancelled = false
         const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
 
+        const API_BASE = 'https://api.football-data.org/v4'
 
 
         Promise.all([
-            fetch('/api/v4/competitions/WC/standings', { headers }).then(r => r.json()),
-            fetch('/api/v4/competitions/WC/matches?status=LIVE', { headers }).then(r => r.json()),
-            fetch('/api/v4/competitions/WC/matches?status=FINISHED', { headers }).then(r => r.json()),
-            fetch('/api/v4/competitions/WC/matches?status=SCHEDULED', { headers }).then(r => r.json()),
-            fetch('/api/v4/competitions/WC/scorers?season=2026&limit=10', { headers }).then(r => r.json()),
-            fetch('/api/v4/competitions/WC/matches', { headers }).then(r => r.json()),
+            fetch(`${API_BASE}/competitions/WC/standings`, { headers }).then(r => r.json()),
+            fetch(`${API_BASE}/competitions/WC/matches?status=LIVE`, { headers }).then(r => r.json()),
+            fetch(`${API_BASE}/competitions/WC/matches?status=FINISHED`, { headers }).then(r => r.json()),
+            fetch(`${API_BASE}/competitions/WC/matches?status=SCHEDULED`, { headers }).then(r => r.json()),
+            fetch(`${API_BASE}/competitions/WC/scorers?season=2026&limit=10`, { headers }).then(r => r.json()),
+            fetch(`${API_BASE}/competitions/WC/matches`, { headers }).then(r => r.json()),
         ]).then(([standingsData, liveData, finishedData, scheduledData, scorersData, allMatchesData]) => {
             if (cancelled) return
             // setStandings(standingsData.standings?.[0]?.table?.slice(0, 5) || [])

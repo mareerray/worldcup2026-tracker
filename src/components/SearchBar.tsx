@@ -14,8 +14,10 @@ export default function SearchBar() {
     const [teams, setTeams] = useState<Team[]>([])
     const navigate = useNavigate()
 
+    const API_BASE = 'https://api.football-data.org/v4'
+
     useEffect(() => {
-        fetch('/api/v4/competitions/WC/teams', {
+        fetch(`${API_BASE}/competitions/WC/teams`, {
             headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
         })
             .then(r => r.json())

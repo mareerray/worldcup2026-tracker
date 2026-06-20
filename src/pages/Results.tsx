@@ -7,8 +7,10 @@ export default function Results() {
     const [loading, setLoading] = useState(true)
     const [selectedMatchday, setSelectedMatchday] = useState(1)
 
+    const API_BASE = 'https://api.football-data.org/v4'
+
     useEffect(() => {
-        fetch(`/api/v4/competitions/WC/matches?matchday=${selectedMatchday}`, {
+        fetch(`${API_BASE}/competitions/WC/matches?matchday=${selectedMatchday}`, {
             headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
         })
             .then(res => res.json())

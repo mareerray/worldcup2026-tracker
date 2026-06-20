@@ -13,9 +13,8 @@ export default function Header({ matchday }: Props) {
                     alt="FIFA World Cup 2026 Ball"
                     className="header__ball"
                 />
-                {/* <span className="header__trophy">🏆</span> */}
                 <div>
-                    <h1>FIFA World Cup 2026</h1>
+                    <h1>FIFA World Cup 2026 Tracker</h1>
                     <p className="header__sub">USA · Canada · Mexico · 11 Jun – 19 Jul</p>
                 </div>
             </div>
@@ -36,25 +35,3 @@ export default function Header({ matchday }: Props) {
         </header>
     )
 }
-// interface Props {
-//     matchday: number | null
-// }
-
-// export default function Header({ matchday }: Props) {
-//     return (
-//         <header className="header">
-//             <div className="header__logo">
-//                 <span className="header__trophy">🏆</span>
-//                 <div>
-//                     <h1>FIFA World Cup 2026</h1>
-//                     <p className="header__sub">USA · Canada · Mexico</p>
-//                 </div>
-//             </div>
-//             {matchday && (
-//                 <div className="header__matchday">
-//                     Matchday <strong>{matchday}</strong>
-//                 </div>
-//             )}
-//         </header>
-//     )
-// }

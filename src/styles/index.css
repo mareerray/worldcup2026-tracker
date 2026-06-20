@@ -450,3 +450,14 @@ td strong {
   }
 }
 
+/* Error Boundary */
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  font-size: 1rem;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  padding: 2rem;
+}

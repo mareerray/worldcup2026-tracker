@@ -82,6 +82,22 @@ export default function About() {
                             emoji: "👟",
                             fact: "Just Fontaine holds the record for most goals in a single World Cup — 13 goals in 1958."
                         },
+                        {
+                            emoji: "📺",
+                            fact: "The 2026 World Cup final will be held at MetLife Stadium in New Jersey, USA — the largest stadium in the tournament."
+                        },
+                        {
+                            emoji: "🌡️",
+                            fact: "To avoid summer heat, matches in the USA will be played in air-conditioned stadiums for the first time in World Cup history."
+                        },
+                        {
+                            emoji: "🇺🇸",
+                            fact: "The USA last hosted the World Cup in 1994, where it set attendance records that stood for decades."
+                        },
+                        {
+                            emoji: "⏱️",
+                            fact: "FIFA introduced stoppage time accuracy in 2022 — matches now regularly see 10+ minutes of added time."
+                        },
                     ].map(({ emoji, fact }, i) => (
                         <div key={i} className="fact-card">
                             <span className="fact-card__emoji">{emoji}</span>

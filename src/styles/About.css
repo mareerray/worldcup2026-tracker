@@ -26,7 +26,7 @@
 }
 
 .about-hero__img {
-    width: 200px;
+    width: 300px;
     height: auto;
     margin: 0 auto 1.5rem;
     display: block;
@@ -44,8 +44,21 @@
 
 .about-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
+    /* grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); */
     gap: 1rem;
+}
+
+@media (max-width: 900px) {
+    .about-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .about-card {

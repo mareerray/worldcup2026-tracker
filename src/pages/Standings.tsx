@@ -10,13 +10,11 @@ export default function Standings() {
         fetch('/api/v4/competitions/WC/standings', {
             headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
         })
-            .then(res => res.json())
-            .then(json => {
-                setStandings(json.standings)
-                setLoading(false)
-            })
+            .then(r => r.json())
+            .then(data => setStandings(data.standings || []))
+            .catch(err => console.error('Standings error:', err))
+            .finally(() => setLoading(false))
     }, [])
-
     if (loading) return <p className="loading">Loading standings...</p>
 
     return (

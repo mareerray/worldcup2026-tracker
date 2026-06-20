@@ -45,6 +45,7 @@ export default function Home() {
     const [slideVisible, setSlideVisible] = useState(true)
 
     useEffect(() => {
+        let cancelled = false
         const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
 
         Promise.all([
@@ -54,6 +55,7 @@ export default function Home() {
             fetch('/api/v4/competitions/WC/scorers?season=2026&limit=10', { headers }).then(r => r.json()),
             fetch('/api/v4/competitions/WC/matches', { headers }).then(r => r.json()),
         ]).then(([standingsData, finishedData, scheduledData, scorersData, allMatchesData]) => {
+            if (cancelled) return
             setStandings(standingsData.standings?.[0]?.table?.slice(0, 5) || [])
             setRecentMatches(finishedData.matches?.slice(-6).reverse() || [])
             setNextMatch(scheduledData.matches?.[0] || null)
@@ -62,6 +64,7 @@ export default function Home() {
             setPlayedMatches(finishedData.matches?.length || 0)
             setLoading(false)
         })
+        return () => { cancelled = true }
     }, [])
 
     const goToSlide = (index: number) => {

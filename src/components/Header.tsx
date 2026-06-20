@@ -1,10 +1,6 @@
 import { NavLink } from 'react-router-dom'
 
-interface Props {
-    matchday: number | null
-}
-
-export default function Header({ matchday }: Props) {
+export default function Header() {
     return (
         <header className="header">
             <div className="header__left">
@@ -27,11 +23,6 @@ export default function Header({ matchday }: Props) {
                 <NavLink to="/about" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>About</NavLink>
             </nav>
 
-            {matchday && (
-                <div className="header__matchday">
-                    Matchday <strong>{matchday}</strong>
-                </div>
-            )}
         </header>
     )
 }

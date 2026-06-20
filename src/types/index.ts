@@ -59,6 +59,8 @@ export interface Match {
     matchday: number
     homeTeam: MatchTeam
     awayTeam: MatchTeam
+    group: string
+    venue: string
     score: {
         fullTime: Score
     }

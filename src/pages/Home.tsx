@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Match, Standing } from '../types'
+import '../styles/Home.css'
 
 interface Scorer {
     player: { name: string }
@@ -50,7 +51,7 @@ export default function Home() {
             fetch('/api/v4/competitions/WC/standings', { headers }).then(r => r.json()),
             fetch('/api/v4/competitions/WC/matches?status=FINISHED', { headers }).then(r => r.json()),
             fetch('/api/v4/competitions/WC/matches?status=SCHEDULED', { headers }).then(r => r.json()),
-            fetch('/api/v4/competitions/WC/scorers?season=2026&limit=5', { headers }).then(r => r.json()),
+            fetch('/api/v4/competitions/WC/scorers?season=2026&limit=10', { headers }).then(r => r.json()),
             fetch('/api/v4/competitions/WC/matches', { headers }).then(r => r.json()),
         ]).then(([standingsData, finishedData, scheduledData, scorersData, allMatchesData]) => {
             setStandings(standingsData.standings?.[0]?.table?.slice(0, 5) || [])
@@ -159,8 +160,72 @@ export default function Home() {
 
             </div>
 
-            {/* Row 2 — Top Scorers + Progress + Carousel */}
+            {/* Row 2 — Tournament Progress + Carousel & Scorers */}
             <div className="home-mid">
+
+                {/* Tournament Progress — full width */}
+                <div className="home-card slide-up delay-03 home-mid__full">
+                    <h3 className="home-card__title">📊 Tournament Progress</h3>
+                    <div className="progress-section">
+                        <div className="progress-label">
+                            <span>Group Stage</span>
+                            <span>{playedMatches} of {totalMatches} played</span>
+                        </div>
+                        <div className="progress-bar">
+                            <div
+                                className="progress-bar__fill"
+                                style={{ '--progress': `${progressPercent}%` } as React.CSSProperties}
+                            />
+                        </div>                        
+                        <p className="progress-remaining">{totalMatches - playedMatches} matches remaining</p>
+                    </div>
+                </div>
+
+                {/* Image Carousel */}
+                <div className="home-card carousel-card slide-up delay-04">
+                    <h3 className="home-card__title">📸 WC 2026</h3>
+                    <div className="carousel">
+                        <img
+                            src={SLIDES[slideIndex].url}
+                            alt={SLIDES[slideIndex].caption}
+                            className={`carousel__img ${slideVisible ? 'carousel__img--visible' : 'carousel__img--hidden'}`}
+                        />
+                        <div className="carousel__caption">{SLIDES[slideIndex].caption}</div>
+                        <div className="carousel__controls">
+                            <button className="carousel__arrow" onClick={() => goToSlide((slideIndex - 1 + SLIDES.length) % SLIDES.length)}>‹</button>
+                            <div className="fact-dots">
+                                {SLIDES.map((_, i) => (
+                                    <span
+                                        key={i}
+                                        className={`fact-dot ${i === slideIndex ? 'fact-dot--active' : ''}`}
+                                        onClick={() => goToSlide(i)}
+                                    />
+                                ))}
+                            </div>
+                            <button className="carousel__arrow" onClick={() => goToSlide((slideIndex + 1) % SLIDES.length)}>›</button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Top Scorers */}
+                <div className="home-card slide-up delay-05">
+                    <h3 className="home-card__title">🥅 Top Scorers</h3>
+                    <div className="scorers-list">
+                        {scorers.map((s, i) => (
+                            <div key={i} className="scorer-row">
+                                <span className="scorer-row__rank">{i + 1}</span>
+                                <img src={s.team.crest} alt={s.team.shortName} width={20} height={20} />
+                                <span className="scorer-row__name">{s.player.name}</span>
+                                <span className="scorer-row__team">{s.team.shortName}</span>
+                                <span className="scorer-row__goals">{s.goals} ⚽</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+            </div>
+            {/* Row 2 — Top Scorers + Progress + Carousel */}
+            {/* <div className="home-mid">
 
                 <div className="home-card slide-up delay-03">
                     <h3 className="home-card__title">🥅 Top Scorers</h3>
@@ -185,13 +250,16 @@ export default function Home() {
                             <span>{playedMatches} of {totalMatches} played</span>
                         </div>
                         <div className="progress-bar">
-                            <div className="progress-bar__fill" data-progress={Math.round(progressPercent)} />
-                        </div>
+                            <div
+                                className="progress-bar__fill"
+                                style={{ '--progress': `${progressPercent}%` } as React.CSSProperties}
+                            />
+                        </div>                        
                         <p className="progress-remaining">{totalMatches - playedMatches} matches remaining</p>
                     </div>
                 </div>
 
-                {/* Image Carousel */}
+                {/* Image Carousel 
                 <div className="home-card carousel-card slide-up delay-05">
                     <h3 className="home-card__title">📸 WC 2026</h3>
                     <div className="carousel">
@@ -217,7 +285,7 @@ export default function Home() {
                     </div>
                 </div>
 
-            </div>
+            </div> */}
 
             {/* Row 3 — Latest Results full width */}
             <div className="home-card slide-up delay-06">

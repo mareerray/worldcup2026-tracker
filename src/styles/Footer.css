@@ -3,6 +3,7 @@
     margin-top: 2rem;
     padding: 1.5rem 2rem;
     background: var(--bg-card);
+    border-radius: 8px;
 }
 
 .footer__inner {

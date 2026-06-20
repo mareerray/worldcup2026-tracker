@@ -1,9 +1,11 @@
 :root {
   --bg: #0f1117;
-  --bg-card: #1a1d27;
+  --bg-card: #090b0f;
   --text: #e0e0e0;
   --text-heading: #ffffff;
-  --accent: #4ecca3;
+  --accent: #61a019;
+  /* --accent: #4ecca3; */
+  --accent-blue: #06458d;
   --accent-bg: rgba(78, 204, 163, 0.1);
   --border: rgba(255, 255, 255, 0.07);
   --font: 'Segoe UI', system-ui, sans-serif;
@@ -17,10 +19,42 @@
 
 body {
   font-family: var(--font);
-  background-color: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  position: relative;
+  background: var(--bg);
+  overflow-x: hidden;
 }
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url('/images/bg-pattern-1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  filter: blur(15px);
+  transform: scale(1.05);
+  z-index: -2;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.614);
+  z-index: -1;
+}
+
+/* body {
+  font-family: var(--font);
+  background-image: url('../public/images/bg-pattern-1.jpg');
+  background-size: cover;
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+} */
 
 .app {
   max-width: 1400px;
@@ -76,8 +110,8 @@ body {
 }
 
 .header__ball {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
   flex-shrink: 0;
   animation: spin 10s linear infinite;
@@ -123,7 +157,7 @@ body {
 
 .nav-link:hover {
   color: var(--text-heading);
-  background: rgba(255,255,255,0.06);
+  background: var(--accent-bg);
 }
 
 .nav-link.active {

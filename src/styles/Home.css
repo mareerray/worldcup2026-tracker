@@ -1,6 +1,8 @@
 /* ---- Home ------ */
 /* Hero */
 .home {
+    /* background: var(--bg-card); */
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
@@ -98,6 +100,41 @@
     font-size: 0.85rem;
     opacity: 0.7;
 }
+
+.live-match__teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.live-match__team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.live-match__vs {
+    font-weight: 700;
+    opacity: 0.7;
+}
+
+.live-match__info {
+    margin: 0.7rem 0 0.7rem;
+    text-align: center;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.live-match__score {
+    margin-top: 1rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 60px;
+    text-align: center;
+}
+
 
 .next-match {
     display: grid;

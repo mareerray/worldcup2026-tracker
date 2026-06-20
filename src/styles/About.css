@@ -62,7 +62,7 @@
 }
 
 .about-card {
-    background: var(--bg-card);
+    background: var(--accent-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.25rem;
@@ -94,7 +94,7 @@
 }
 
 .about-facts {
-    background: var(--bg-card);
+    background: var(--accent-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.5rem;

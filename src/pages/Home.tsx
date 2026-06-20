@@ -61,7 +61,7 @@ export default function Home() {
         ]).then(([standingsData, liveData, finishedData, scheduledData, scorersData, allMatchesData]) => {
             if (cancelled) return
             // setStandings(standingsData.standings?.[0]?.table?.slice(0, 5) || [])
-            setLiveMatches(liveData.matches?.slice(0,1) || [])
+            setLiveMatches(liveData.matches?.slice(0, 1) || [])
             setRecentMatches(finishedData.matches?.slice(-6).reverse() || [])
             setUpcomingMatches(scheduledData.matches?.slice(0, 3) || [])
             setScorers(scorersData.scorers || [])
@@ -137,17 +137,59 @@ export default function Home() {
                 </div>
 
                 <div className="home-second">
-                    <div className="home-card slide-up delay-02">
-                        <h3 className="home-card__title">🔴 Live Match</h3>
-                        {liveMatches.length > 0 ? (
-                            liveMatches.map(match => (
-                                <div key={match.id}>
-                                    {match.homeTeam.shortName} vs {match.awayTeam.shortName}
-                                </div>
-                            ))
-                        ) : (
-                            <p className="no-data">No match is live at the moment</p>
-                        )}
+                    <div className="home-second">
+                        <div className="home-card slide-up delay-02">
+                            <h3 className="home-card__title">🔴 Live Match</h3>
+                            {liveMatches.length > 0 ? (
+                                liveMatches.map(match => (
+                                    <div key={match.id} className="live-match">
+
+                                        <p className="live-match__info">
+                                            Matchday {match.matchday} ·{' '}
+                                            {new Date(match.utcDate).toLocaleString('en-GB', {
+                                                timeZone: 'Europe/Helsinki',
+                                                weekday: 'short',
+                                                day: 'numeric',
+                                                month: 'short',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            })}{' '}
+                                            <span className="timezone-label">EEST</span>
+                                        </p>
+                
+                                        <div className="live-match__teams">
+                                            <div className="live-match__team">
+                                                <img
+                                                    src={match.homeTeam.crest}
+                                                    alt={match.homeTeam.name}
+                                                    width={28}
+                                                    height={28}
+                                                />
+                                                <span>{match.homeTeam.shortName}</span>
+                                            </div>
+
+                                            <span className="live-match__vs">VS</span>
+
+                                            <div className="live-match__team">
+                                                <img
+                                                    src={match.awayTeam.crest}
+                                                    alt={match.awayTeam.name}
+                                                    width={28}
+                                                    height={28}
+                                                />
+                                                <span>{match.awayTeam.shortName}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="live-match__score">
+                                            {match.score.fullTime.home} - {match.score.fullTime.away}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="no-data">No match is live at the moment</p>
+                            )}
+                        </div>
                     </div>
 
                     <div className="home-card slide-up delay-02">
@@ -196,7 +238,7 @@ export default function Home() {
                         )}
                     </div>
                 </div>
-                
+
             </div>
 
             {/* Row 2 — Tournament Progress + Carousel & Scorers */}

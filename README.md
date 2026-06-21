@@ -4,8 +4,11 @@ A real-time World Cup 2026 dashboard built with React, TypeScript and Vite.
 Live data powered by the [football-data.org](https://www.football-data.org) API.
 
 ## 🚀 Live Demo
-[worldcup2026-tracker.vercel.app](https://worldcup2026-tracker-app.vercel.app) 
+[worldcup2026-tracker-app.vercel.app](https://worldcup2026-tracker-app.vercel.app) 
 
+<div>
+<img src="public/images/screenshot.png" width="700">
+</div>
 
 ## ✨ Features
 

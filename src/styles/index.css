@@ -302,11 +302,6 @@ td strong {
   color: var(--text-heading);
 }
 
-@media (max-width: 768px) {
-  .groups-grid { grid-template-columns: 1fr; }
-  .app { padding: 1rem; }
-}
-
 .section-title {
   font-size: 1.1rem;
   font-weight: 700;

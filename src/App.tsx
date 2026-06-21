@@ -39,10 +39,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 // App
 function App() {
 
-  const API_BASE = 'https://api.football-data.org/v4'
-
   useEffect(() => {
-    fetch(`${API_BASE}/competitions/WC/standings`, {
+    fetch(`/api/football/competitions/WC/standings`, {
       headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
     })
       .then(res => res.json())

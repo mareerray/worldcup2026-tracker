@@ -6,10 +6,8 @@ export default function Standings() {
     const [standings, setStandings] = useState<Standing[]>([])
     const [loading, setLoading] = useState(true)
 
-    const API_BASE = 'https://api.football-data.org/v4'
-
     useEffect(() => {
-        fetch(`${API_BASE}/competitions/WC/standings`, {
+        fetch(`/api/football/competitions/WC/standings`, {
             headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
         })
             .then(r => r.json())

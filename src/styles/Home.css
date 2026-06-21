@@ -9,7 +9,7 @@
 }
 
 .home-top {
-    display: grid;
+    /* display: grid; */
     grid-template-columns: 1.5fr 1fr;
     gap: 1.25rem;
 }
@@ -219,6 +219,10 @@
 }
 
 @media (max-width: 768px) {
+    .home-top {
+        grid-template-columns: 1fr;
+    }
+
     .home-mid {
         grid-template-columns: 1fr;
     }
@@ -375,12 +379,6 @@
     color: rgba(255, 255, 255, 0.3);
     text-align: center;
     padding: 1rem 0;
-}
-
-@media (max-width: 768px) {
-    .home-top {
-        grid-template-columns: 1fr;
-    }
 }
 
 .carousel-card {

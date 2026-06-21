@@ -58,6 +58,11 @@
     .about-grid {
         grid-template-columns: 1fr;
     }
+
+    .about-hero__img {
+        width: 100%;
+        max-width: 240px;
+    }
 }
 
 .about-card {

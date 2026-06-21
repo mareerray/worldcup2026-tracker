@@ -12,13 +12,21 @@ Live data powered by the [football-data.org](https://www.football-data.org) API.
 
 ## ✨ Features
 
-- 🥇 **Live Standings** — group table with points, goals and goal difference
-- ⚽ **Results** — match scores by matchday
-- 📅 **Fixtures** — upcoming matches with dates and times
+### 🏠 Home Dashboard
+- 🥇 **Group Leaderboard** — quick snapshot of the top team in each of the 12 groups
+- 🔴 **Live Match** — shows the current live match with real-time score, or a "no match live" message
+- 📅 **Upcoming Matches** — next fixtures with date, time and timezone (EEST)
 - 🥅 **Top Scorers** — live scorer rankings for WC 2026
-- 📊 **Tournament Progress** — matches played vs remaining
+- ⚽ **Latest Results** — most recent match scores at a glance
+- 📊 **Tournament Progress** — matches played vs remaining with a progress bar
 - 📸 **Image Carousel** — WC 2026 venues and highlights
-- 🌍 **About** — tournament info and fun facts
+
+### 📄 Pages
+- 🏆 **Standings** — full group tables for all 12 groups with P, W, D, L, GD and PTS
+- 🕐 **Results** — all match scores filterable by matchday
+- 🗓️ **Fixtures** — upcoming matches with date, time and venue
+- 🔍 **Team Search** — search any of the 48 teams and view their details
+- 🌍 **About** — tournament info, fun facts and external resources
 
 ## 🛠️ Tech Stack
 
@@ -76,16 +84,30 @@ npm run build
 ````
 src/
 ├── components/
-│ ├── Header.tsx # Sticky header with nav
-│ └── MatchCard.tsx # Reusable match result card
+│   ├── Footer.tsx          # Footer with credits
+│   ├── GroupTable.tsx      # Group standings table component
+│   ├── Header.tsx          # Sticky header with search & nav
+│   ├── MatchCard.tsx       # Reusable match result/fixture card
+│   ├── Navbar.tsx          # Navigation tab bar
+│   └── SearchBar.tsx       # Team search with dropdown
 ├── pages/
-│ ├── Home.tsx # Dashboard with live data
-│ ├── Standings.tsx # Group standings table
-│ ├── Results.tsx # Match results by matchday
-│ ├── Fixtures.tsx # Upcoming fixtures
-│ └── About.tsx # Tournament info & facts
-├── types.ts # TypeScript interfaces
-└── main.tsx # App entry point
+│   ├── About.tsx           # Tournament info, facts & resources
+│   ├── Fixtures.tsx        # Upcoming matches with date/time/venue
+│   ├── Home.tsx            # Dashboard: live, upcoming & standings
+│   ├── Results.tsx         # Match history filterable by matchday
+│   ├── Standings.tsx       # All 12 group tables
+│   └── TeamPage.tsx        # Individual team detail page
+├── styles/
+│   ├── About.css           # About page styles
+│   ├── Footer.css          # Footer styles
+│   ├── Home.css            # Home dashboard styles
+│   ├── index.css           # Global styles & CSS variables
+│   ├── SearchBar.css       # Search component styles
+│   └── TeamPage.css        # Team page styles
+├── types/
+│   └── index.ts            # TypeScript interfaces & types
+├── App.tsx                 # Root component with routing
+└── main.tsx                # App entry point
 ````
 
 ## 🔑 API
@@ -93,11 +115,7 @@ src/
 This project uses the free tier of [football-data.org](https://www.football-data.org).  
 Rate limit: 10 requests/minute.
 
-## 📄 License
-
-MIT — feel free to use and modify.
-
 ---
 
-Built by [Mayuree Reunsati](https://github.com/mareerray) · grit:lab Åland 2026
+Built by [Mayuree Reunsati](https://github.com/mareerray) · grit:lab Åland June 2026
 

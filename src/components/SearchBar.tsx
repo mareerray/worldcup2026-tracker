@@ -43,7 +43,7 @@ export default function SearchBar() {
             <input
                 type="text"
                 className="search-bar__input"
-                placeholder="Search team..."
+                placeholder="Search for a team..."
                 value={query}
                 onChange={e => setQuery(e.target.value)}
             />

@@ -311,6 +311,45 @@ td strong {
   margin-bottom: 1rem;
 }
 
+@media (max-width: 600px) {
+  .groups-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .group-table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 0.75rem;
+  }
+
+  .group-table table {
+    width: max-content;
+    min-width: 100%;
+    table-layout: auto;
+    font-size: 0.7rem;
+  }
+
+  .group-table th,
+  .group-table td {
+    padding: 0.25rem 0.15rem;
+    white-space: nowrap;
+  }
+
+  .group-table td:nth-child(2) {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  .group-table td img {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+}
+
 /* ----- Matchday tabs ----- */
 .matchday-tabs {
   display: flex;

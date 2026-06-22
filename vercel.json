@@ -5,7 +5,7 @@
             "destination": "/api/football"
         },
         {
-            "source": "/(.*)",
+            "source": "/((?!api/).*)",
             "destination": "/index.html"
         }
     ]

@@ -39,6 +39,7 @@ export default function TeamPage() {
     const { id } = useParams()
     const [team, setTeam] = useState<Team | null>(null)
     const [matches, setMatches] = useState<Match[]>([])
+    const [upcomingMatch, setUpcomingMatches] = useState<Match | null>(null)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -48,10 +49,12 @@ export default function TeamPage() {
 
         Promise.all([
             fetch(`/api/football/teams/${id}`, { headers }).then(r => r.json()),
-            fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=5`, { headers }).then(r => r.json())
-        ]).then(([teamData, matchesData]) => {
+            fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=5`, { headers }).then(r => r.json()),
+            fetch(`/api/football/teams/${id}/matches?status=SCHEDULED&limit=1`, { headers }).then(r => r.json())
+        ]).then(([teamData, matchesData, upcomingMatchesData]) => {
             setTeam(teamData)
             setMatches(matchesData.matches || [])
+            setUpcomingMatches(upcomingMatchesData.matches?.[0] ?? null)
             setLoading(false)
         })
     }, [id])
@@ -68,6 +71,45 @@ export default function TeamPage() {
                     <p>{team.shortName}</p>
                 </div>
             </div>
+
+            {upcomingMatch && (
+                <>
+                    <h2>Upcoming Match</h2>
+                    <div className="next-match__item team-page__upcoming">
+                        <div className="next-match__teams">
+                            <div className="next-match__team">
+                                <img src={upcomingMatch.homeTeam.crest} alt={upcomingMatch.homeTeam.name} width={32} height={32} />
+                                <span>{upcomingMatch.homeTeam.shortName}</span>
+                            </div>
+
+                            <div className="next-match__middle">
+                                <span className="next-match__vs">VS</span>
+                            </div>
+
+                            <div className="next-match__team">
+                                <img src={upcomingMatch.awayTeam.crest} alt={upcomingMatch.awayTeam.name} width={32} height={32} />
+                                <span>{upcomingMatch.awayTeam.shortName}</span>
+                            </div>
+                        </div>
+
+                        <p className="next-match__date">
+                            {new Date(upcomingMatch.utcDate).toLocaleDateString('en-GB', {
+                                timeZone: 'Europe/Helsinki',
+                                weekday: 'short',
+                                day: 'numeric',
+                                month: 'short'
+                            })}
+                            {' · '}
+                            {new Date(upcomingMatch.utcDate).toLocaleTimeString('en-GB', {
+                                timeZone: 'Europe/Helsinki',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                            <span className="timezone-label">EEST</span>
+                        </p>
+                    </div>
+                </>
+            )}
 
             <h2>Recent Matches</h2>
             <div className="results-list">

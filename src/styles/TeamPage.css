@@ -43,6 +43,38 @@
     gap: 0.75rem;
 }
 
+.team-page__upcoming {
+    background-color: var(--bg-card);
+    border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+    .team-page__upcoming .next-match__teams {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 0.25rem;
+    }
+
+    .team-page__upcoming .next-match__team {
+        min-width: 0;
+    }
+
+    .team-page__upcoming .next-match__team span {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        line-height: 1.05;
+        font-size: 0.82rem;
+    }
+
+    .team-page__upcoming .next-match__team img {
+        width: 22px;
+        height: 22px;
+    }
+
+    .team-page__upcoming .next-match__vs {
+        font-size: 0.72rem;
+    }
+}
 
 /* Squad Grid */
 

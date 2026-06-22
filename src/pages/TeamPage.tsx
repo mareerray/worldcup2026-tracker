@@ -67,7 +67,10 @@ export default function TeamPage() {
                 if (cancelled) return
 
                 setTeam(teamData)
-                setMatches(matchesData.matches || [])
+                const sortedMatches = [...(matchesData.matches || [])].sort(
+                    (a, b) => new Date(b.utcDate).getTime() - new Date(a.utcDate).getTime()
+                )
+                setMatches(sortedMatches)
                 setUpcomingMatches(upcomingMatchesData.matches?.[0] ?? null)
             } catch {
                 if (!cancelled) {
@@ -155,20 +158,36 @@ export default function TeamPage() {
                 </>
             )}
 
-            <h2>Recent Matches</h2>
+            <h2>Recent Results</h2>
             <div className="results-list">
                 {matches.map(match => (
+                    
                     <div key={match.id} className="result-row">
                         <div className="result-row__team result-row__team--home">
                             <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={24} height={24} />
                             <span>{match.homeTeam.shortName}</span>
                         </div>
 
-                        <div className="result-row__score">
+                        <div className="result-row__center">
+                            <div className="result-row__score">
+                                <span>{match.score.fullTime.home}</span>
+                                <span className="score--divider">–</span>
+                                <span>{match.score.fullTime.away}</span>
+                            </div>
+                            <p className="result-row__date">
+                                {new Date(match.utcDate).toLocaleDateString('en-GB', {
+                                    timeZone: 'Europe/Helsinki',
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                })}
+                            </p>
+                        </div>
+                        {/* <div className="result-row__score">
                             <span>{match.score.fullTime.home}</span>
                             <span className="score--divider">–</span>
                             <span>{match.score.fullTime.away}</span>
-                        </div>
+                        </div> */}
 
                         <div className="result-row__team result-row__team--away">
                             <span>{match.awayTeam.shortName}</span>

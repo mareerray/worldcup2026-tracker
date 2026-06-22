@@ -45,19 +45,63 @@ export default function TeamPage() {
     useEffect(() => {
         if (!id) return
 
+        let cancelled = false
         const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
 
-        Promise.all([
-            fetch(`/api/football/teams/${id}`, { headers }).then(r => r.json()),
-            fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=5`, { headers }).then(r => r.json()),
-            fetch(`/api/football/teams/${id}/matches?status=SCHEDULED&limit=1`, { headers }).then(r => r.json())
-        ]).then(([teamData, matchesData, upcomingMatchesData]) => {
-            setTeam(teamData)
-            setMatches(matchesData.matches || [])
-            setUpcomingMatches(upcomingMatchesData.matches?.[0] ?? null)
-            setLoading(false)
-        })
+        const loadTeam = async () => {
+            try {
+                setLoading(true)
+
+                const [teamRes, matchesRes, upcomingRes] = await Promise.all([
+                    fetch(`/api/football/teams/${id}`, { headers }),
+                    fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=5`, { headers }),
+                    fetch(`/api/football/teams/${id}/matches?status=SCHEDULED&limit=1`, { headers })
+                ])
+
+                const [teamData, matchesData, upcomingMatchesData] = await Promise.all([
+                    teamRes.json(),
+                    matchesRes.json(),
+                    upcomingRes.json()
+                ])
+
+                if (cancelled) return
+
+                setTeam(teamData)
+                setMatches(matchesData.matches || [])
+                setUpcomingMatches(upcomingMatchesData.matches?.[0] ?? null)
+            } catch {
+                if (!cancelled) {
+                    setTeam(null)
+                    setMatches([])
+                    setUpcomingMatches(null)
+                }
+            } finally {
+                if (!cancelled) setLoading(false)
+            }
+        }
+
+        loadTeam()
+
+        return () => {
+            cancelled = true
+        }
     }, [id])
+    // useEffect(() => {
+    //     if (!id) return
+
+    //     const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
+
+    //     Promise.all([
+    //         fetch(`/api/football/teams/${id}`, { headers }).then(r => r.json()),
+    //         fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=5`, { headers }).then(r => r.json()),
+    //         fetch(`/api/football/teams/${id}/matches?status=SCHEDULED&limit=1`, { headers }).then(r => r.json())
+    //     ]).then(([teamData, matchesData, upcomingMatchesData]) => {
+    //         setTeam(teamData)
+    //         setMatches(matchesData.matches || [])
+    //         setUpcomingMatches(upcomingMatchesData.matches?.[0] ?? null)
+    //         setLoading(false)
+    //     })
+    // }, [id])
 
     if (loading) return <p className="loading">Loading...</p>
     if (!team) return <p className="no-data">Team not found</p>

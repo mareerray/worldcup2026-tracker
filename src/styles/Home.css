@@ -218,6 +218,84 @@
     grid-column: 1 / -1;
 }
 
+@media (max-width: 600px) {
+    .home-top {
+        grid-template-columns: 1fr;
+    }
+
+    .home-second {
+        grid-template-rows: auto auto;
+    }
+
+    .home-card {
+        padding: 1rem 0.75rem;
+    }
+
+    .mini-table-wrap,
+    .home-card:has(.mini-table) {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .mini-table {
+        width: max-content;
+        min-width: 100%;
+        table-layout: auto;
+        font-size: 0.72rem;
+    }
+
+    .mini-table th,
+    .mini-table td {
+        padding: 0.22rem 0.12rem;
+        white-space: nowrap;
+    }
+
+    .mini-table td:first-child,
+    .mini-table th:first-child {
+        min-width: 44px;
+    }
+
+    .mini-table td:nth-child(2),
+    .mini-table th:nth-child(2) {
+        min-width: 96px;
+    }
+
+    .mini-table__team {
+        gap: 0.25rem;
+    }
+
+    .mini-table__team img {
+        width: 16px;
+        height: 16px;
+    }
+
+    .live-match__teams,
+    .next-match__teams {
+        gap: 0.5rem;
+    }
+
+    .live-match__team,
+    .next-match__team {
+        gap: 0.35rem;
+        min-width: 0;
+    }
+
+    .live-match__team span,
+    .next-match__team span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .live-match__score {
+        font-size: 1.4rem;
+    }
+
+    .timezone-label {
+        font-size: 0.75rem;
+    }
+}
+
 @media (max-width: 768px) {
     .home-top {
         grid-template-columns: 1fr;

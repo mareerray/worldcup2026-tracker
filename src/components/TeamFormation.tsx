@@ -45,7 +45,9 @@ export default function TeamFormation({ players, team }: Props) {
           className="formation-title-icon"
         />
         <h2 className="formation-title">Team Formation</h2>
-      </div>
+      </div>        
+      <h3 className="formation-subtitle">This is a team setup view, not the real-time match lineup.</h3>
+
       <div className="formation-pitch">
         <PitchLines />
         {Object.entries(groups).map(([position, posPlayers]) => (

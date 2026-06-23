@@ -193,6 +193,11 @@ export default function TeamPage() {
                 ))}
             </div>
 
+            <TeamFormation
+                players={(team.squad ?? []).map(p => ({ ...p, position: p.position ?? '' }))}
+                team={{ crest: team.crest, name: team.name }}
+            />
+            
             {team.coach && (
                 <>
                     <h2>Coach</h2>
@@ -205,12 +210,6 @@ export default function TeamPage() {
                     </div>
                 </>
             )}
-
-            {/* <TeamFormation players={(team.squad ?? []).map(p => ({ ...p, position: p.position ?? '' }))} /> */}
-            <TeamFormation
-                players={(team.squad ?? []).map(p => ({ ...p, position: p.position ?? '' }))}
-                team={{ crest: team.crest, name: team.name }}
-            />
 
             <h2>Squad</h2>
             <div className="squad-grid">

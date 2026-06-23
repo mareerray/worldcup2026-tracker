@@ -136,6 +136,11 @@
         width: 62px;
     }
 
+    .formation-player__dot {
+        width: 4px;
+        height: 4px;
+    }
+
     .formation-player__name {
         font-size: 8px;
     }
@@ -158,6 +163,11 @@
 
     .formation-player {
         width: 54px;
+    }
+
+    .formation-player__dot {
+        width: 3px;
+        height: 3px;
     }
 
     .formation-player__name {
@@ -229,6 +239,11 @@
         font-size: 5px;
     }
 
+    .formation-player__dot {
+        width: 3px;
+        height: 3px;
+    }
+    
     .formation-player__name {
         font-size: 5px;
     }

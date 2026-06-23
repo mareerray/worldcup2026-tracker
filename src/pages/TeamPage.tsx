@@ -73,7 +73,7 @@ export default function TeamPage() {
           fetch(`/api/football/teams/${id}`, { headers }),
           fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=5`, { headers }),
           fetch(`/api/football/teams/${id}/matches?status=SCHEDULED&limit=1`, { headers }),
-          fetch(`/api/football/competitions/WC/scorers?limit=50`, { headers })
+          fetch(`/api/football/competitions/WC/scorers?limit=150`, { headers })
         ])
 
         const [teamData, matchesData, upcomingMatchesData, scorersData] = await Promise.all([

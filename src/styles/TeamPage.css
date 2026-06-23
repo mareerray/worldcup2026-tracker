@@ -48,6 +48,91 @@
     border-radius: 8px;
 }
 
+.scorers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.scorer-row {
+    display: grid;
+    grid-template-columns: 32px 24px 1fr auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.scorer-row__rank {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: white;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.scorer-row__name {
+    font-weight: 700;
+    color: white;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scorer-row__none {
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.scorer-row__team {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.9rem;
+}
+
+.scorer-row__goals {
+    font-weight: 800;
+    color: white;
+}
+
+@media (max-width: 640px) {
+    .scorer-row {
+        grid-template-columns: 28px 20px 1fr auto;
+        grid-template-areas:
+            "rank crest name goals"
+            ". . team team";
+        row-gap: 4px;
+    }
+
+    .scorer-row__rank {
+        grid-area: rank;
+    }
+
+    .scorer-row img {
+        grid-area: crest;
+    }
+
+    .scorer-row__name {
+        grid-area: name;
+    }
+
+    .scorer-row__team {
+        grid-area: team;
+        font-size: 0.8rem;
+    }
+
+    .scorer-row__goals {
+        grid-area: goals;
+    }
+}
+
 @media (max-width: 600px) {
     .team-page__upcoming .next-match__teams {
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);

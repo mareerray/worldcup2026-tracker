@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import '../styles/TeamPage.css'
+import TeamFormation from '../components/TeamFormation'
 
 type Coach = {
     id: number
@@ -161,7 +162,7 @@ export default function TeamPage() {
             <h2>Recent Results</h2>
             <div className="results-list">
                 {matches.map(match => (
-                    
+
                     <div key={match.id} className="result-row">
                         <div className="result-row__team result-row__team--home">
                             <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={24} height={24} />
@@ -183,11 +184,6 @@ export default function TeamPage() {
                                 })}
                             </p>
                         </div>
-                        {/* <div className="result-row__score">
-                            <span>{match.score.fullTime.home}</span>
-                            <span className="score--divider">–</span>
-                            <span>{match.score.fullTime.away}</span>
-                        </div> */}
 
                         <div className="result-row__team result-row__team--away">
                             <span>{match.awayTeam.shortName}</span>
@@ -210,6 +206,12 @@ export default function TeamPage() {
                 </>
             )}
 
+            {/* <TeamFormation players={(team.squad ?? []).map(p => ({ ...p, position: p.position ?? '' }))} /> */}
+            <TeamFormation
+                players={(team.squad ?? []).map(p => ({ ...p, position: p.position ?? '' }))}
+                team={{ crest: team.crest, name: team.name }}
+            />
+
             <h2>Squad</h2>
             <div className="squad-grid">
                 {team.squad?.map(player => (
@@ -223,6 +225,7 @@ export default function TeamPage() {
                     </div>
                 ))}
             </div>
+
         </div>
     )
 }

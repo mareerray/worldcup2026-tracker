@@ -105,9 +105,9 @@ export default function Home() {
         ]).then(([standingsData, liveData, finishedData, scheduledData, scorersData, allMatchesData]) => {
             if (cancelled) return
             // setStandings(standingsData.standings?.[0]?.table?.slice(0, 5) || [])
-            setLiveMatches(liveData.matches?.slice(0, 1) || [])
+            setLiveMatches(liveData.matches?.slice(0, 2) || [])
             setRecentMatches(finishedData.matches?.slice(-6).reverse() || [])
-            setUpcomingMatches(scheduledData.matches?.slice(0, 3) || [])
+            setUpcomingMatches(scheduledData.matches?.slice(0, 2) || [])
             setScorers(scorersData.scorers || [])
             setTotalMatches(allMatchesData.resultSet?.count || 104)
             setPlayedMatches(finishedData.matches?.length || 0)

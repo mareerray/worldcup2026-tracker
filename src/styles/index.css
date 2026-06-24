@@ -177,6 +177,8 @@ body::after {
   color: var(--accent);
 }
 
+
+
 @media (max-width: 1200px) {
   .header {
     display: flex;
@@ -211,13 +213,18 @@ body::after {
   }
 
   .nav-link{
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     padding: 0.35rem 0.3rem;
     white-space: nowrap;
     margin-right: 0.25rem;
   }
 }
 
+@media (max-width: 600px) {
+  .nav-link {
+    font-size: 0.8rem;
+  }
+}
 /* ----- Groups Grid ----- */
 
 .groups-grid {

@@ -258,6 +258,7 @@
 
     .pitch-box--top,
     .pitch-box--bottom {
-        display: none;
+        left: 28%;
+        width: 45%;
     }
 }

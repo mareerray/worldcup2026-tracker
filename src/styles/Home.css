@@ -550,6 +550,15 @@
     min-height: 1.2em;
 }
 
+.carousel__credit {
+    font-size: 0.7rem;
+    color: #888;
+    text-align: center;
+    margin-top: 0.2rem;
+    font-style: italic;
+    opacity: 0.75;
+}
+
 .carousel__controls {
     display: flex;
     align-items: center;

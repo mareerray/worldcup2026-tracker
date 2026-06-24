@@ -214,7 +214,7 @@ body::after {
 
   .nav-link{
     font-size: 0.9rem;
-    padding: 0.35rem 0.3rem;
+    padding: 0.35rem 0.5rem;
     white-space: nowrap;
     margin-right: 0.25rem;
   }

@@ -223,6 +223,7 @@ body::after {
 @media (max-width: 600px) {
   .nav-link {
     font-size: 0.8rem;
+    padding: 0.35rem 0.4rem;
   }
 }
 /* ----- Groups Grid ----- */

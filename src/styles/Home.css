@@ -108,6 +108,44 @@
     gap: 12px;
 }
 
+.live-match__status {
+    text-align: center;
+    margin: -0.25rem 0 0.75rem;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.live-match__pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 0.65rem;
+}
+
+.live-match__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.live-match__pill--live {
+    background: rgba(230, 75, 75, 0.14);
+    color: #ff9d9d;
+    border: 1px solid rgba(230, 75, 75, 0.22);
+}
+
+.live-match__pill--delay {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .live-match__team {
     display: flex;
     align-items: center;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Match, Standing } from '../types'
 import '../styles/Home.css'
 
@@ -85,42 +85,106 @@ export default function Home() {
     const [playedMatches, setPlayedMatches] = useState(0)
     const [loading, setLoading] = useState(true)
     const [groupLeaders, setGroupLeaders] = useState<{ group: string; team: Standing }[]>([])
+    const [lastUpdated, setLastUpdated] = useState<number | null>(null)
+    const [liveFeedNotice, setLiveFeedNotice] = useState<string | null>(null)
+    const liveRefreshBlockedUntilRef = useRef<number | null>(null)
 
     // Carousel state
     const [slideIndex, setSlideIndex] = useState(0)
     const [slideVisible, setSlideVisible] = useState(true)
 
-    useEffect(() => {
-        let cancelled = false
+    const loadStaticHomeData = async (cancelledRef: { current: boolean }) => {
         const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
 
-
-        Promise.all([
+        const [standingsData, finishedData, scheduledData, scorersData, allMatchesData] = await Promise.all([
             fetch(`/api/football/competitions/WC/standings`, { headers }).then(r => r.json()),
-            fetch(`/api/football/competitions/WC/matches?status=LIVE`, { headers }).then(r => r.json()),
             fetch(`/api/football/competitions/WC/matches?status=FINISHED`, { headers }).then(r => r.json()),
             fetch(`/api/football/competitions/WC/matches?status=SCHEDULED`, { headers }).then(r => r.json()),
             fetch(`/api/football/competitions/WC/scorers?season=2026&limit=10`, { headers }).then(r => r.json()),
             fetch(`/api/football/competitions/WC/matches`, { headers }).then(r => r.json()),
-        ]).then(([standingsData, liveData, finishedData, scheduledData, scorersData, allMatchesData]) => {
-            if (cancelled) return
-            // setStandings(standingsData.standings?.[0]?.table?.slice(0, 5) || [])
+        ])
+
+        if (cancelledRef.current) return
+
+        setRecentMatches(finishedData.matches?.slice(-6).reverse() || [])
+        setUpcomingMatches(scheduledData.matches?.slice(0, 2) || [])
+        setScorers(scorersData.scorers || [])
+        setTotalMatches(allMatchesData.resultSet?.count || 104)
+        setPlayedMatches(finishedData.matches?.length || 0)
+
+        const leaders = standingsData.standings
+            .filter((g: { type: string }) => g.type === 'TOTAL')
+            .map((g: { group: string; table: Standing[] }) => ({
+                group: g.group.replace('GROUP_', 'Group '),
+                team: g.table[0]  // top team
+            }))
+        setGroupLeaders(leaders)
+    }
+
+    const syncLiveMatches = async (cancelledRef: { current: boolean }) => {
+        const blockedUntil = liveRefreshBlockedUntilRef.current
+        if (blockedUntil && Date.now() < blockedUntil) return
+
+        const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
+
+        try {
+            const response = await fetch(`/api/football/competitions/WC/matches?status=LIVE`, { headers })
+
+            if (response.status === 429) {
+                if (!cancelledRef.current) {
+                    setLiveFeedNotice('Live feed is rate-limited right now. Showing the latest cached update.')
+                    liveRefreshBlockedUntilRef.current = Date.now() + 5 * 60_000
+                }
+                return
+            }
+
+            const liveData = await response.json()
+
+            if (cancelledRef.current) return
+
             setLiveMatches(liveData.matches?.slice(0, 2) || [])
-            setRecentMatches(finishedData.matches?.slice(-6).reverse() || [])
-            setUpcomingMatches(scheduledData.matches?.slice(0, 2) || [])
-            setScorers(scorersData.scorers || [])
-            setTotalMatches(allMatchesData.resultSet?.count || 104)
-            setPlayedMatches(finishedData.matches?.length || 0)
-            setLoading(false)
-            const leaders = standingsData.standings
-                .filter((g: { type: string }) => g.type === 'TOTAL')
-                .map((g: { group: string; table: Standing[] }) => ({
-                    group: g.group.replace('GROUP_', 'Group '),
-                    team: g.table[0]  // top team
-                }))
-            setGroupLeaders(leaders)
-        })
-        return () => { cancelled = true }
+            setLastUpdated(Date.now())
+            setLiveFeedNotice(null)
+        } catch {
+            if (!cancelledRef.current) {
+                setLiveFeedNotice('Live feed is temporarily unavailable. Showing the latest cached update.')
+            }
+        }
+    }
+
+    useEffect(() => {
+        const cancelledRef = { current: false }
+
+        const refresh = async () => {
+            await loadStaticHomeData(cancelledRef)
+            await syncLiveMatches(cancelledRef)
+
+            if (!cancelledRef.current) {
+                setLoading(false)
+            }
+        }
+
+        refresh()
+
+        const interval = window.setInterval(() => {
+            if (!document.hidden) {
+                syncLiveMatches(cancelledRef)
+            }
+        }, 90_000)
+
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                syncLiveMatches(cancelledRef)
+            }
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+
+        return () => {
+            cancelledRef.current = true
+            window.clearInterval(interval)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+        }
     }, [])
 
     const goToSlide = (index: number) => {
@@ -140,6 +204,12 @@ export default function Home() {
     if (loading) return <p className="loading">Loading...</p>
 
     const progressPercent = Math.round((playedMatches / totalMatches) * 100)
+    const refreshLabel = lastUpdated
+        ? `Updated at ${new Date(lastUpdated).toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+        })}`
+        : 'Refreshing live data'
 
     return (
         <div className="home">
@@ -184,9 +254,15 @@ export default function Home() {
                     <div className="home-second">
                         <div className="home-card slide-up delay-02">
                             <h3 className="home-card__title">🔴 Live Match</h3>
+                            <p className="live-match__status">Data refreshes about every minute · {refreshLabel}</p>
+                            {liveFeedNotice ? <p className="live-match__status live-match__status--notice">{liveFeedNotice}</p> : null}
                             {liveMatches.length > 0 ? (
                                 liveMatches.map(match => (
                                     <div key={match.id} className="live-match">
+                                        <div className="live-match__pill-row">
+                                            <span className="live-match__pill live-match__pill--live">LIVE TRACKER</span>
+                                            <span className="live-match__pill live-match__pill--delay">Delayed feed</span>
+                                        </div>
 
                                         <p className="live-match__info">
                                             Matchday {match.matchday} ·{' '}

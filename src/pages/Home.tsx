@@ -1,80 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Match, Standing } from '../types'
+import type { Match, Standing, Scorer } from '../types'
+import type { AIInsight } from '../types/ai'
+import { getAIInsight } from '../services/geminiService'
+import { fetchFootballJson, FootballApiError } from '../api/football'
+import { SLIDES } from '../utils/slides.ts'
+import AIResultCard from '../components/ai/AIResultCard'
+import MatchInsightButton from '../components/ai/MatchInsightButton'
 import '../styles/Home.css'
-
-interface Scorer {
-    player: { name: string }
-    team: { name: string; shortName: string; crest: string }
-    goals: number
-}
-
-const SLIDES = [
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/e87e04d68606a91d06bbcc0b0e40c619992e01b9.jpg',
-        caption: 'MetLife Stadium — New Jersey',
-        credit: '© Getty Images / Dustin Satloff'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/1def98a5168ec304234e7848a36bc8e982d4d7e5.jpg',
-        caption: 'Estadio Azteca — Mexico City',
-        credit: '© Reuters'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/b0b2915cd2b0fa35b5d5785cb27b5b798a974409.jpg',
-        caption: 'BC Place — Vancouver, Canada',
-        credit: '© Xinhua / Liang Sen'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/137bc51fd41e17aa828a9b62595d92415dcca003.jpg',
-        caption: '🇲🇽 Opening Ceremony — Estadio Azteca, Mexico City',
-        credit: '© Getty Images / FIFA'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/8e134d66f88f13db106b32ee1dda70f34ebf50cd.jpg',
-        caption: '🇲🇽 Opening Ceremony — Full Stadium View',
-        credit: '© AP / ABC News'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/a8b479364ea438820dc98598bf9760e10032223a.jpg',
-        caption: '🇲🇽 Fan Fest — Mexico City',
-        credit: '© PanamericanWorld'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/2ecc4ea01fce21d11df3d2b87b531137d2d823f6.jpg',
-        caption: '🇨🇦 Opening Ceremony — BMO Field, Toronto',
-        credit: '© AC13 / FIFA'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/58f06837bf76391363897ed8fcd4e39268c5a456.jpg',
-        caption: '🇨🇦 Canada Fans — Pre-Game Gathering, Vancouver',
-        credit: '© Daily Hive / Offside'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/3a47aa9af260c3d9e0b6d4a4f4b586e7a4e36305.jpg',
-        caption: '🇺🇸 Opening Ceremony — SoFi Stadium, Los Angeles',
-        credit: '© Getty Images / FIFA'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/af3cddd7d05e5267b90208e637e10ba1640fcd92.jpg',
-        caption: '🇺🇸 Opening Ceremony — Los Angeles, USA',
-        credit: '© Getty Images / FIFA'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/5b3ba9c0d5647e8b172a6832f60e38cd6257c532.jpg',
-        caption: '🇺🇸 USA Fans — Seattle, Washington',
-        credit: '© Reuters'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/4418af1370208e48c42603f549e4f088b8cb1d0b.jpg',
-        caption: '⚽ Official Ball — Adidas Trionda',
-        credit: '© Getty Images / Juan Manuel Serrano Arce'
-    },
-    {
-        url: 'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/9af200ec22a572eac1b90fddbb57e1604d7efb8c.jpg',
-        caption: '🏆 FIFA World Cup 2026 Official Logo',
-        credit: '© FIFA / Shutterstock'
-    },
-]
+import '../styles/AIStyles.css'
 
 export default function Home() {
     const [recentMatches, setRecentMatches] = useState<Match[]>([])
@@ -87,42 +20,55 @@ export default function Home() {
     const [groupLeaders, setGroupLeaders] = useState<{ group: string; team: Standing }[]>([])
     const [lastUpdated, setLastUpdated] = useState<number | null>(null)
     const [liveFeedNotice, setLiveFeedNotice] = useState<string | null>(null)
+    const [dataError, setDataError] = useState<string | null>(null)
     const liveRefreshBlockedUntilRef = useRef<number | null>(null)
 
-    // Carousel state
+    const [aiLoading, setAiLoading] = useState(false)
+    const [aiInsight, setAiInsight] = useState<AIInsight | null>(null)
+    const [aiError, setAiError] = useState<string | null>(null) 
+
+    const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)
+
     const [slideIndex, setSlideIndex] = useState(0)
     const [slideVisible, setSlideVisible] = useState(true)
 
     const loadStaticHomeData = async (cancelledRef: { current: boolean }) => {
-        if (import.meta.env.DEV && sessionStorage.getItem('staticDataLoaded')) return
-        const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
+        try {
+            const [standingsData, finishedData, scheduledData, scorersData, allMatchesData] = await Promise.all([
+                fetchFootballJson<{ standings?: { type: string; group: string; table: Standing[] }[] }>('/competitions/WC/standings'),
+                fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?status=FINISHED'),
+                fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?status=SCHEDULED'),
+                fetchFootballJson<{ scorers?: Scorer[] }>('/competitions/WC/scorers?season=2026&limit=10'),
+                fetchFootballJson<{ resultSet?: { count: number } }>('/competitions/WC/matches'),
+            ])
 
-        const [standingsData, finishedData, scheduledData, scorersData, allMatchesData] = await Promise.all([
-            fetch(`/api/football/competitions/WC/standings`, { headers }).then(r => r.json()),
-            fetch(`/api/football/competitions/WC/matches?status=FINISHED`, { headers }).then(r => r.json()),
-            fetch(`/api/football/competitions/WC/matches?status=SCHEDULED`, { headers }).then(r => r.json()),
-            fetch(`/api/football/competitions/WC/scorers?season=2026&limit=10`, { headers }).then(r => r.json()),
-            fetch(`/api/football/competitions/WC/matches`, { headers }).then(r => r.json()),
-        ])
+            if (cancelledRef.current) return
 
-        if (cancelledRef.current) return
+            setDataError(null)
+            setRecentMatches(finishedData.matches?.slice(-6).reverse() || [])
+            setUpcomingMatches(scheduledData.matches?.slice(0, 2) || [])
+            setScorers(scorersData.scorers || [])
+            setTotalMatches(allMatchesData.resultSet?.count || 104)
+            setPlayedMatches(finishedData.matches?.length || 0)
 
-        setRecentMatches(finishedData.matches?.slice(-6).reverse() || [])
-        setUpcomingMatches(scheduledData.matches?.slice(0, 2) || [])
-        setScorers(scorersData.scorers || [])
-        setTotalMatches(allMatchesData.resultSet?.count || 104)
-        setPlayedMatches(finishedData.matches?.length || 0)
+            if (!standingsData.standings) return
 
-        if (!standingsData.standings) return
+            const leaders = standingsData.standings
+                .filter((g) => g.type === 'TOTAL')
+                .map((g) => ({
+                    group: g.group.replace('GROUP_', 'Group '),
+                    team: g.table[0]
+                }))
+            setGroupLeaders(leaders)
+        } catch (error) {
+            if (cancelledRef.current) return
 
-        const leaders = standingsData.standings
-            .filter((g: { type: string }) => g.type === 'TOTAL')
-            .map((g: { group: string; table: Standing[] }) => ({
-                group: g.group.replace('GROUP_', 'Group '),
-                team: g.table[0]  // top team
-            }))
-        setGroupLeaders(leaders)
-        if (import.meta.env.DEV && sessionStorage.getItem('staticDataLoaded')) return
+            const message = error instanceof FootballApiError
+                ? error.message
+                : 'Could not load tournament data. Please try again later.'
+
+            setDataError(message)
+        }
     }
 
     const syncLiveMatches = async (cancelledRef: { current: boolean }) => {
@@ -153,6 +99,26 @@ export default function Home() {
             if (!cancelledRef.current) {
                 setLiveFeedNotice('Live feed is temporarily unavailable. Showing the latest cached update.')
             }
+        }
+    }
+
+    const handleAskAI = async (match: Match) => {
+        setSelectedMatchId(match.id)
+        setAiLoading(true)
+        setAiInsight(null)
+        setAiError(null)
+
+        try {
+            const prompt = `Return JSON only with title, summary, and keyFactor.
+Give a match preview for ${match.homeTeam.name} vs ${match.awayTeam.name}.`
+            const data = await getAIInsight(prompt)
+            setAiInsight(data)
+        } catch (error: unknown) {
+            const previewError = error as { status?: number; message?: string } | null
+            const errorMessage = previewError?.message?.trim() || 'Match insight failed. Please try again.'
+            setAiError(errorMessage)
+        } finally {
+            setAiLoading(false)
         }
     }
 
@@ -199,7 +165,6 @@ export default function Home() {
         }, 300)
     }
 
-    // Auto-advance carousel
     useEffect(() => {
         const interval = setInterval(() => goToSlide((slideIndex + 1) % SLIDES.length), 4000)
         return () => clearInterval(interval)
@@ -217,10 +182,12 @@ export default function Home() {
 
     return (
         <div className="home">
-
-            {/* Row 1 — Standings + Next Match */}
+            {dataError ? (
+                <p className="home-api-error" role="alert">
+                    {dataError}
+                </p>
+            ) : null}
             <div className="home-top">
-
                 <div className="home-card slide-up delay-1">
                     <h3 className="home-card__title">🥇 Group Leaders</h3>
                     <table className="mini-table">
@@ -318,10 +285,14 @@ export default function Home() {
 
                     <div className="home-card slide-up delay-02">
                         <h3 className="home-card__title">📅 Upcoming Matches</h3>
+
                         {upcomingMatches.length > 0 ? (
                             <div className="next-match">
-                                {upcomingMatches.map(match => (
-                                    <div key={match.id} className="next-match__item">
+                                {upcomingMatches.map((match) => (
+                                    <div
+                                        key={match.id}
+                                        className={`next-match__item ${match.id === selectedMatchId ? 'next-match__item--active' : ''}`}
+                                    >
                                         <div className="next-match__teams">
                                             <div className="next-match__team">
                                                 <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={32} height={32} />
@@ -354,21 +325,23 @@ export default function Home() {
                                             })}
                                             <span className="timezone-label">EEST</span>
                                         </p>
+
+                                        <MatchInsightButton
+                                            loading={aiLoading && selectedMatchId === match.id}
+                                            disabled={aiLoading}
+                                            onClick={() => handleAskAI(match)}
+                                        />
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <p className="no-data">No upcoming matches</p>
                         )}
-                    </div>
+                    </div>                   
                 </div>
-
             </div>
 
-            {/* Row 2 — Tournament Progress + Carousel & Scorers */}
             <div className="home-mid">
-
-                {/* Tournament Progress — full width */}
                 <div className="home-card slide-up delay-03 home-mid__full">
                     <h3 className="home-card__title">📊 Tournament Progress</h3>
                     <div className="progress-section">
@@ -386,7 +359,6 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Image Carousel */}
                 <div className="home-card carousel-card slide-up delay-04">
                     <h3 className="home-card__title">📸 World Cup 2026</h3>
                     <div className="carousel">
@@ -413,7 +385,6 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Top Scorers */}
                 <div className="home-card slide-up delay-05">
                     <h3 className="home-card__title">🥅 Top Scorers</h3>
                     <div className="scorers-list">
@@ -428,10 +399,8 @@ export default function Home() {
                         ))}
                     </div>
                 </div>
-
             </div>
 
-            {/* Row 3 — Latest Results full width */}
             <div className="home-card slide-up delay-06">
                 <h3 className="home-card__title">⚽ Latest Results</h3>
                 <div className="results-list">
@@ -458,6 +427,21 @@ export default function Home() {
                     ))}
                 </div>
             </div>
+
+            {aiInsight || aiLoading || aiError ? (
+                <AIResultCard
+                    insight={aiInsight}
+                    loading={aiLoading}
+                    error={aiError}
+                    onClose={() => {
+                        setAiInsight(null)
+                        setAiError(null)
+                        setAiLoading(false)
+                        setSelectedMatchId(null)
+                    }}
+                />
+            ) : null}        
         </div>
     )
 }
+

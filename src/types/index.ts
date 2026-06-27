@@ -65,3 +65,9 @@ export interface Match {
         fullTime: Score
     }
 }
+
+export interface Scorer {
+    player: { name: string }
+    team: { name: string; shortName: string; crest: string }
+    goals: number
+}

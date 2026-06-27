@@ -1,40 +1,101 @@
-const cache = new Map<string, string>()
+import type { AIInsight } from '../types/ai'
 
-export async function getMatchPreview(home: string, away: string): Promise<string> {
-    const cacheKey = `${home}-${away}`
-    if (cache.has(cacheKey)) return cache.get(cacheKey)!
+type GeminiError = Error & { status?: number }
 
-    const fallbackPreviews = [
-        `${home} and ${away} are set for a tense World Cup meeting with little margin for error.`,
-        `${home} vs ${away} feels like a match where one moment of quality could decide everything.`,
-        `${home} and ${away} should bring plenty of intensity in a game that could swing either way.`,
-    ]
-    const fallback = fallbackPreviews[Math.abs((home + away).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)) % fallbackPreviews.length]
+const GEMINI_MODEL = 'gemini-2.5-flash'
 
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-    if (!apiKey) return fallback
+const cache = new Map<string, AIInsight>()
+let blockedUntil = 0
 
-    const prompt = `In one punchy sentence (max 20 words), preview ${home} vs ${away} at FIFA World Cup 2026. Sound like an excited football fan, mention something specific about one team.`
+function throwGeminiError(message: string, status?: number): never {
+    const error = new Error(message) as GeminiError
+    if (status !== undefined) error.status = status
+    throw error
+}
+
+function getRetryAfterMs(response: Response): number {
+    const retryAfter = response.headers.get('Retry-After')
+    if (!retryAfter) return 60_000
+
+    const seconds = Number(retryAfter)
+    if (!Number.isNaN(seconds)) return seconds * 1000
+
+    const date = Date.parse(retryAfter)
+    if (!Number.isNaN(date)) return Math.max(date - Date.now(), 1000)
+
+    return 60_000
+}
+
+async function parseGeminiError(response: Response): Promise<string> {
+    const text = (await response.text()).trim()
 
     try {
-        const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-            }
-        )
-
-        if (!res.ok) return fallback
-
-        const data = await res.json()
-        const preview = data?.candidates?.[0]?.content?.parts?.[0]?.text
-        const result = typeof preview === 'string' && preview.trim() ? preview : fallback
-
-        cache.set(cacheKey, result) // save it so it never calls the API again for same match
-        return result
+        const json = JSON.parse(text) as { error?: { message?: string } }
+        return json.error?.message?.trim() || text
     } catch {
-        return fallback
+        return text || `Gemini API error (${response.status})`
+    }
+}
+
+function isBillingError(message: string): boolean {
+    const lower = message.toLowerCase()
+    return lower.includes('billing') || lower.includes('credit') || lower.includes('depleted') || lower.includes('quota')
+}
+
+export async function getAIInsight(prompt: string): Promise<AIInsight> {
+    const cached = cache.get(prompt)
+    if (cached) return cached
+
+    if (Date.now() < blockedUntil) {
+        const seconds = Math.ceil((blockedUntil - Date.now()) / 1000)
+        throwGeminiError(
+            `Gemini rate limit reached. Try again in about ${seconds} seconds.`,
+            429
+        )
+    }
+
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY
+
+    if (!apiKey || apiKey === 'your_key_here') {
+        throwGeminiError('Missing Gemini API key. Add VITE_GEMINI_API_KEY to your .env file.')
+    }
+
+    const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: 'application/json',
+                },
+            }),
+        }
+    )
+
+    if (!res.ok) {
+        const message = await parseGeminiError(res)
+
+        if (res.status === 429 && !isBillingError(message)) {
+            blockedUntil = Date.now() + getRetryAfterMs(res)
+        }
+
+        throwGeminiError(message, res.status)
+    }
+
+    const data = await res.json()
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!text) {
+        throwGeminiError('Gemini returned an empty response')
+    }
+
+    try {
+        const insight = JSON.parse(text) as AIInsight
+        cache.set(prompt, insight)
+        blockedUntil = 0
+        return insight
+    } catch {
+        throwGeminiError('Gemini returned invalid JSON')
     }
 }

@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
-import { useEffect, Component } from 'react'
+import { Component } from 'react'
 import type { ReactNode } from 'react'
 import Header from './components/Header'
 import Home from './pages/Home'
@@ -38,15 +38,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
 // App
 function App() {
-
-  useEffect(() => {
-    fetch(`/api/football/competitions/WC/standings`, {
-      headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
-    })
-      .then(res => res.json())
-      .catch(err => console.error('App fetch error:', err))
-  }, [])
-
   return (
     <div className="app">
       <Header />

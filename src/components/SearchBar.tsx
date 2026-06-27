@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { fetchFootballJson } from '../api/football'
 import '../styles/SearchBar.css'
 
 type Team = {
@@ -15,11 +16,9 @@ export default function SearchBar() {
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetch(`/api/football/competitions/WC/teams`, {
-            headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
-        })
-            .then(r => r.json())
+        fetchFootballJson<{ teams?: Team[] }>('/competitions/WC/teams')
             .then(data => setTeams(data.teams || []))
+            .catch(() => setTeams([]))
     }, [])
 
     const filtered = useMemo(() => {

@@ -185,6 +185,29 @@
     gap: 12px;
 }
 
+.home-second .preview-action {
+    margin-top: 0.55rem;
+    padding: 0.5rem 0.75rem;
+    gap: 0.35rem;
+    border-radius: 9px;
+}
+
+.home-second .preview-action__label {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+}
+
+.home-second .preview-action__icon,
+.home-second .preview-action__spinner {
+    width: 11px;
+    height: 11px;
+}
+
+.home-second .preview-action .ai-badge {
+    padding: 0.12rem 0.3rem;
+    font-size: 0.52rem;
+}
+
 .preview-action {
     display: flex;
     align-items: center;

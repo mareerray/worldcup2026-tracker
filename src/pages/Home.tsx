@@ -10,6 +10,20 @@ import MatchInsightButton from '../components/ai/MatchInsightButton'
 import '../styles/Home.css'
 import '../styles/AIStyles.css'
 
+const LIVE_STATUSES = new Set(['IN_PLAY', 'PAUSED', 'LIVE'])
+
+function toDateParam(date: Date) {
+    return date.toISOString().slice(0, 10)
+}
+
+function getLiveMatchDateRange() {
+    const from = new Date()
+    from.setDate(from.getDate() - 1)
+    const to = new Date()
+    to.setDate(to.getDate() + 1)
+    return { dateFrom: toDateParam(from), dateTo: toDateParam(to) }
+}
+
 export default function Home() {
     const [recentMatches, setRecentMatches] = useState<Match[]>([])
     const [liveMatches, setLiveMatches] = useState<Match[]>([])
@@ -19,7 +33,6 @@ export default function Home() {
     const [playedMatches, setPlayedMatches] = useState(0)
     const [loading, setLoading] = useState(true)
     const [groupLeaders, setGroupLeaders] = useState<{ group: string; team: Standing }[]>([])
-    const [lastUpdated, setLastUpdated] = useState<number | null>(null)
     const [liveFeedNotice, setLiveFeedNotice] = useState<string | null>(null)
     const [dataError, setDataError] = useState<string | null>(null)
     const liveRefreshBlockedUntilRef = useRef<number | null>(null)
@@ -79,7 +92,11 @@ export default function Home() {
         const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
 
         try {
-            const response = await fetch(`/api/football/competitions/WC/matches?status=LIVE`, { headers })
+            const { dateFrom, dateTo } = getLiveMatchDateRange()
+            const response = await fetch(
+                `/api/football/competitions/WC/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`,
+                { headers }
+            )
 
             if (response.status === 429) {
                 if (!cancelledRef.current) {
@@ -93,8 +110,11 @@ export default function Home() {
 
             if (cancelledRef.current) return
 
-            setLiveMatches(liveData.matches?.slice(0, 2) || [])
-            setLastUpdated(Date.now())
+            const matches = (liveData.matches as Match[] | undefined)?.filter((match) =>
+                LIVE_STATUSES.has(match.status)
+            ).sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime()) || []
+
+            setLiveMatches(matches)
             setLiveFeedNotice(null)
         } catch {
             if (!cancelledRef.current) {
@@ -175,12 +195,6 @@ export default function Home() {
     if (loading) return <p className="loading">Loading...</p>
 
     const progressPercent = Math.round((playedMatches / totalMatches) * 100)
-    const refreshLabel = lastUpdated
-        ? `Updated at ${new Date(lastUpdated).toLocaleTimeString('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-        })}`
-        : 'Refreshing live data'
 
     return (
         <div className="home">
@@ -226,16 +240,18 @@ export default function Home() {
                 <div className="home-second">
                     <div className="home-second">
                         <div className="home-card slide-up delay-02">
-                            <h3 className="home-card__title">🔴 Live Match</h3>
-                            <p className="live-match__status">Data refreshes about every minute · {refreshLabel}</p>
+                            <div className="live-match-card__header">
+                                <h3 className="home-card__title">🔴 Live Matches</h3>
+                                <div className="live-match__pill-row">
+                                    <span className="live-match__pill live-match__pill--live">LIVE TRACKER</span>
+                                    <span className="live-match__pill live-match__pill--delay">Delayed feed</span>
+                                </div>
+                            </div>
                             {liveFeedNotice ? <p className="live-match__status live-match__status--notice">{liveFeedNotice}</p> : null}
                             {liveMatches.length > 0 ? (
-                                liveMatches.map(match => (
+                                <div className="live-match-list">
+                                {liveMatches.map(match => (
                                     <div key={match.id} className="live-match">
-                                        <div className="live-match__pill-row">
-                                            <span className="live-match__pill live-match__pill--live">LIVE TRACKER</span>
-                                            <span className="live-match__pill live-match__pill--delay">Delayed feed</span>
-                                        </div>
 
                                         <p className="live-match__info">
                                             Matchday {match.matchday} ·{' '}
@@ -250,37 +266,38 @@ export default function Home() {
                                             <span className="timezone-label">EEST</span>
                                         </p>
 
-                                        <div className="live-match__teams">
-                                            <div className="live-match__team">
+                                        <div className="next-match__teams">
+                                            <div className="next-match__team">
                                                 <img
                                                     src={match.homeTeam.crest}
                                                     alt={match.homeTeam.name}
-                                                    width={28}
-                                                    height={28}
+                                                    width={24}
+                                                    height={24}
                                                 />
                                                 <span>{match.homeTeam.shortName}</span>
                                             </div>
 
-                                            <span className="live-match__vs">VS</span>
+                                            <div className="next-match__middle">
+                                                <span className="live-match__score">
+                                                    {match.score.fullTime.home ?? 0} – {match.score.fullTime.away ?? 0}
+                                                </span>
+                                            </div>
 
-                                            <div className="live-match__team">
+                                            <div className="next-match__team">
                                                 <img
                                                     src={match.awayTeam.crest}
                                                     alt={match.awayTeam.name}
-                                                    width={28}
-                                                    height={28}
+                                                    width={24}
+                                                    height={24}
                                                 />
                                                 <span>{match.awayTeam.shortName}</span>
                                             </div>
                                         </div>
-
-                                        <div className="live-match__score">
-                                            {match.score.fullTime.home} - {match.score.fullTime.away}
-                                        </div>
                                     </div>
-                                ))
+                                ))}
+                                </div>
                             ) : (
-                                <p className="no-data">No match is live at the moment</p>
+                                <p className="no-data">No matches are live at the moment</p>
                             )}
                         </div>
                     </div>
@@ -297,7 +314,7 @@ export default function Home() {
                                     >
                                         <div className="next-match__teams">
                                             <div className="next-match__team">
-                                                <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={32} height={32} />
+                                                <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={24} height={24} />
                                                 <span>{match.homeTeam.shortName}</span>
                                             </div>
 
@@ -306,7 +323,7 @@ export default function Home() {
                                             </div>
 
                                             <div className="next-match__team">
-                                                <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={32} height={32} />
+                                                <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={24} height={24} />
                                                 <span>{match.awayTeam.shortName}</span>
                                             </div>
                                         </div>

@@ -10,6 +10,12 @@ beforeEach(() => {
             } as Response)
         }
 
+        if (url.includes('dateFrom=')) {
+            return Promise.resolve({
+                json: () => Promise.resolve({ matches: [] }),
+            } as Response)
+        }
+
         if (url.includes('status=LIVE')) {
             return Promise.resolve({
                 json: () => Promise.resolve({ matches: [] }),
@@ -44,7 +50,7 @@ it('shows main sections', async () => {
     render(<Home />)
 
     await waitFor(() => {
-        expect(screen.getByText('🔴 Live Match')).toBeInTheDocument()
+        expect(screen.getByText('🔴 Live Matches')).toBeInTheDocument()
     })
 
     expect(screen.getByText('📅 Upcoming Matches')).toBeInTheDocument()

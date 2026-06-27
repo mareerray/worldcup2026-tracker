@@ -9,7 +9,7 @@ export const th: TranslationDict = {
         about: 'เกี่ยวกับ',
     },
     header: {
-        title: 'ฟุตบอลโลก 2026',
+        title: 'ติดตามฟุตบอลโลก 2026',
         subtitle: 'สหรัฐฯ · แคนาดา · เม็กซิโก · 11 มิ.ย. – 19 ก.ค.',
         ballAlt: 'ลูกฟุตบอลฟุตบอลโลก 2026',
     },

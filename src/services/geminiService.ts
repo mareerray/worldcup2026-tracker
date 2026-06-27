@@ -4,6 +4,16 @@ type GeminiError = Error & { status?: number }
 
 const GEMINI_MODEL = 'gemini-2.5-flash'
 
+const INSIGHT_SCHEMA = {
+    type: 'object',
+    properties: {
+        title: { type: 'string' },
+        summary: { type: 'string' },
+        keyFactor: { type: 'string' },
+    },
+    required: ['title', 'summary', 'keyFactor'],
+} as const
+
 const cache = new Map<string, AIInsight>()
 let blockedUntil = 0
 
@@ -42,8 +52,45 @@ function isBillingError(message: string): boolean {
     return lower.includes('billing') || lower.includes('credit') || lower.includes('depleted') || lower.includes('quota')
 }
 
-export async function getAIInsight(prompt: string): Promise<AIInsight> {
-    const cached = cache.get(prompt)
+function isValidInsight(value: unknown): value is AIInsight {
+    if (!value || typeof value !== 'object') return false
+
+    const insight = value as Record<string, unknown>
+    return (
+        typeof insight.title === 'string' &&
+        typeof insight.summary === 'string' &&
+        typeof insight.keyFactor === 'string'
+    )
+}
+
+function extractResponseText(data: {
+    candidates?: Array<{
+        content?: { parts?: Array<{ text?: string }> }
+        finishReason?: string
+    }>
+    promptFeedback?: { blockReason?: string }
+}): string {
+    const candidate = data.candidates?.[0]
+    const text = candidate?.content?.parts?.map((part) => part.text ?? '').join('').trim()
+
+    if (text) return text
+
+    const blockReason = data.promptFeedback?.blockReason
+    if (blockReason) {
+        throwGeminiError(`Gemini blocked the request: ${blockReason}`)
+    }
+
+    const finishReason = candidate?.finishReason
+    if (finishReason === 'MAX_TOKENS') {
+        throwGeminiError('Gemini ran out of output tokens. Please try again.')
+    }
+
+    throwGeminiError('Gemini returned an empty response')
+}
+
+export async function getAIInsight(prompt: string, cacheKey?: string): Promise<AIInsight> {
+    const key = cacheKey ?? prompt
+    const cached = cache.get(key)
     if (cached) return cached
 
     if (Date.now() < blockedUntil) {
@@ -69,6 +116,10 @@ export async function getAIInsight(prompt: string): Promise<AIInsight> {
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
                     responseMimeType: 'application/json',
+                    responseSchema: INSIGHT_SCHEMA,
+                    temperature: 0.7,
+                    maxOutputTokens: 512,
+                    thinkingConfig: { thinkingBudget: 0 },
                 },
             }),
         }
@@ -85,17 +136,19 @@ export async function getAIInsight(prompt: string): Promise<AIInsight> {
     }
 
     const data = await res.json()
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!text) {
-        throwGeminiError('Gemini returned an empty response')
-    }
+    const text = extractResponseText(data)
 
     try {
-        const insight = JSON.parse(text) as AIInsight
-        cache.set(prompt, insight)
+        const insight = JSON.parse(text) as unknown
+        if (!isValidInsight(insight)) {
+            throwGeminiError('Gemini returned an incomplete insight')
+        }
+
+        cache.set(key, insight)
         blockedUntil = 0
         return insight
-    } catch {
+    } catch (error) {
+        if (error instanceof Error && error.name === 'GeminiError') throw error
         throwGeminiError('Gemini returned invalid JSON')
     }
 }

@@ -3,6 +3,7 @@ import type { Match, Standing, Scorer } from '../types'
 import type { AIInsight } from '../types/ai'
 import { getAIInsight } from '../services/geminiService'
 import { fetchFootballJson, FootballApiError } from '../api/football'
+import { buildMatchInsightPrompt, matchInsightCacheKey } from '../utils/matchInsightPrompt'
 import { SLIDES } from '../utils/slides.ts'
 import AIResultCard from '../components/ai/AIResultCard'
 import MatchInsightButton from '../components/ai/MatchInsightButton'
@@ -109,9 +110,10 @@ export default function Home() {
         setAiError(null)
 
         try {
-            const prompt = `Return JSON only with title, summary, and keyFactor.
-Give a match preview for ${match.homeTeam.name} vs ${match.awayTeam.name}.`
-            const data = await getAIInsight(prompt)
+            const data = await getAIInsight(
+                buildMatchInsightPrompt(match),
+                matchInsightCacheKey(match)
+            )
             setAiInsight(data)
         } catch (error: unknown) {
             const previewError = error as { status?: number; message?: string } | null

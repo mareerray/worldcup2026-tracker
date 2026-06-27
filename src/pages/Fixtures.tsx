@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Match } from '../types'
+import '../styles/Fixtures.css'
 
 export default function Fixtures() {
     const [matches, setMatches] = useState<Match[]>([])

@@ -94,6 +94,7 @@ export default function Home() {
     const [slideVisible, setSlideVisible] = useState(true)
 
     const loadStaticHomeData = async (cancelledRef: { current: boolean }) => {
+        if (import.meta.env.DEV && sessionStorage.getItem('staticDataLoaded')) return
         const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
 
         const [standingsData, finishedData, scheduledData, scorersData, allMatchesData] = await Promise.all([
@@ -112,6 +113,8 @@ export default function Home() {
         setTotalMatches(allMatchesData.resultSet?.count || 104)
         setPlayedMatches(finishedData.matches?.length || 0)
 
+        if (!standingsData.standings) return
+
         const leaders = standingsData.standings
             .filter((g: { type: string }) => g.type === 'TOTAL')
             .map((g: { group: string; table: Standing[] }) => ({
@@ -119,6 +122,7 @@ export default function Home() {
                 team: g.table[0]  // top team
             }))
         setGroupLeaders(leaders)
+        if (import.meta.env.DEV && sessionStorage.getItem('staticDataLoaded')) return
     }
 
     const syncLiveMatches = async (cancelledRef: { current: boolean }) => {

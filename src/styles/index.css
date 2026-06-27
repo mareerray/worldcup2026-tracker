@@ -17,6 +17,11 @@
   box-sizing: border-box;
 }
 
+html, body, #root {
+  min-height: 100%;
+  background: var(--bg);
+}
+
 body {
   font-family: var(--font);
   color: var(--text);
@@ -46,15 +51,6 @@ body::after {
   background: rgba(0, 0, 0, 0.614);
   z-index: -1;
 }
-
-/* body {
-  font-family: var(--font);
-  background-image: url('../public/images/bg-pattern-1.jpg');
-  background-size: cover;
-  background-attachment: fixed;
-  color: var(--text);
-  min-height: 100vh;
-} */
 
 .app {
   max-width: 1400px;

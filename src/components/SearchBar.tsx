@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchFootballJson } from '../api/football'
+import { useLanguage } from '../i18n/LanguageContext'
 import '../styles/SearchBar.css'
 
 type Team = {
@@ -14,6 +15,7 @@ export default function SearchBar() {
     const [query, setQuery] = useState('')
     const [teams, setTeams] = useState<Team[]>([])
     const navigate = useNavigate()
+    const { t } = useLanguage()
 
     useEffect(() => {
         fetchFootballJson<{ teams?: Team[] }>('/competitions/WC/teams')
@@ -42,7 +44,7 @@ export default function SearchBar() {
             <input
                 type="text"
                 className="search-bar__input"
-                placeholder="Search for a team..."
+                placeholder={t('search.placeholder')}
                 value={query}
                 onChange={e => setQuery(e.target.value)}
             />

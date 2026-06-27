@@ -1,4 +1,6 @@
 import type { Match } from '../types'
+import { useLanguage } from '../i18n/LanguageContext'
+import { formatDate, formatTime } from '../i18n/format'
 
 interface Props {
     match: Match
@@ -6,9 +8,9 @@ interface Props {
 }
 
 export default function MatchCard({ match, compact }: Props) {
-    const date = new Date(match.utcDate)
-    const time = date.toLocaleTimeString('en-GB', { timeZone: 'Europe/Helsinki', hour: '2-digit', minute: '2-digit' })
-    const day = date.toLocaleDateString('en-GB', { timeZone: 'Europe/Helsinki', weekday: 'short', day: 'numeric', month: 'short' })
+    const { t, locale, timeZone, timeZoneLabel } = useLanguage()
+    const time = formatTime(locale, match.utcDate, timeZone)
+    const day = formatDate(locale, match.utcDate, timeZone, { weekday: 'short', day: 'numeric', month: 'short' })
 
     const isFinished = match.status === 'FINISHED'
     const isLive = match.status === 'IN_PLAY' || match.status === 'PAUSED'
@@ -36,7 +38,7 @@ export default function MatchCard({ match, compact }: Props) {
     return (
         <div className={`match-card ${isLive ? 'match-card--live' : ''}`}>
             <div className="match-card__date">
-                {isLive ? <span className="live-badge">🔴 LIVE</span> : <span>{day} · {time}<span className="timezone-label">EEST</span></span>}
+                {isLive ? <span className="live-badge">{t('common.liveBadge')}</span> : <span>{day} · {time}<span className="timezone-label">{timeZoneLabel}</span></span>}
             </div>
             <div className="match-card__teams">
                 <div className="match-card__team">
@@ -46,7 +48,7 @@ export default function MatchCard({ match, compact }: Props) {
                 <div className="match-card__score">
                     {isFinished || isLive
                         ? <><strong>{match.score.fullTime.home}</strong> – <strong>{match.score.fullTime.away}</strong></>
-                        : <span className="match-card__vs">vs</span>
+                        : <span className="match-card__vs">{t('common.vsLower')}</span>
                     }
                 </div>
                 <div className="match-card__team match-card__team--away">

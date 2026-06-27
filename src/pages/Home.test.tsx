@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { it, expect, vi, beforeEach } from 'vitest'
+import { LanguageProvider } from '../i18n/LanguageContext'
 import Home from './Home'
 
 beforeEach(() => {
@@ -41,7 +42,11 @@ beforeEach(() => {
 })
 
 it('shows main sections', async () => {
-    render(<Home />)
+    render(
+        <LanguageProvider>
+            <Home />
+        </LanguageProvider>
+    )
 
     await waitFor(() => {
         expect(screen.getByText('🔴 Live Match')).toBeInTheDocument()

@@ -1,24 +1,28 @@
-import type { Standing } from "../types";
+import type { Standing } from '../types'
+import { formatGroupName } from '../i18n'
+import { useLanguage } from '../i18n/LanguageContext'
 
 interface Props {
-    standing: Standing;
+    standing: Standing
 }
 
 export default function GroupTable({ standing }: Props) {
+    const { dict, t } = useLanguage()
+
     return (
         <div className="group-table">
-            <h2>{standing.group}</h2>
+            <h2>{formatGroupName(dict, standing.group)}</h2>
             <table>
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Team</th>
-                        <th>P</th>
-                        <th>W</th>
-                        <th>D</th>
-                        <th>L</th>
-                        <th>GD</th>
-                        <th>Pts</th>
+                        <th>{t('table.team')}</th>
+                        <th>{t('table.played')}</th>
+                        <th>{t('table.won')}</th>
+                        <th>{t('table.draw')}</th>
+                        <th>{t('table.lost')}</th>
+                        <th>{t('table.goalDiff')}</th>
+                        <th>{t('table.points')}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,5 +51,5 @@ export default function GroupTable({ standing }: Props) {
                 </tbody>
             </table>
         </div>
-    );
+    )
 }

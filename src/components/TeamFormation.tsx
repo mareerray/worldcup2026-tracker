@@ -1,4 +1,5 @@
 import '../styles/TeamFormation.css'
+import { useLanguage } from '../i18n/LanguageContext'
 
 interface Player {
   name: string
@@ -25,6 +26,8 @@ const POSITION_LABELS: Record<string, string> = {
 }
 
 export default function TeamFormation({ players, team }: Props) {
+  const { t } = useLanguage()
+
   const groups: Record<string, Player[]> = {
     Goalkeeper: [],
     Defence: [],
@@ -44,9 +47,9 @@ export default function TeamFormation({ players, team }: Props) {
           alt={team.name}
           className="formation-title-icon"
         />
-        <h2 className="formation-title">Team Formation</h2>
-      </div>        
-      <h3 className="formation-subtitle">This is a team setup view, not the real-time match lineup.</h3>
+        <h2 className="formation-title">{t('formation.title')}</h2>
+      </div>
+      <h3 className="formation-subtitle">{t('formation.subtitle')}</h3>
 
       <div className="formation-pitch">
         <PitchLines />

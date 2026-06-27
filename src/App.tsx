@@ -9,8 +9,8 @@ import Fixtures from './pages/Fixtures'
 import About from './pages/About'
 import Footer from './components/Footer'
 import TeamPage from './pages/TeamPage'
+import { LanguageContext } from './i18n/LanguageContext'
 
-// Error Boundary
 interface ErrorBoundaryState { hasError: boolean }
 interface ErrorBoundaryProps { children: ReactNode }
 
@@ -27,16 +27,19 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary">
-          <p>⚠️ Something went wrong. Please try refreshing the page.</p>
-        </div>
+        <LanguageContext.Consumer>
+          {(ctx) => (
+            <div className="error-boundary">
+              <p>⚠️ {ctx?.t('errors.somethingWrong') ?? 'Something went wrong. Please try refreshing the page.'}</p>
+            </div>
+          )}
+        </LanguageContext.Consumer>
       )
     }
     return this.props.children
   }
 }
 
-// App
 function App() {
   return (
     <div className="app">
@@ -59,4 +62,3 @@ function App() {
 }
 
 export default App
-

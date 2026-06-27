@@ -5,12 +5,20 @@ import { getAIInsight } from '../services/geminiService'
 import { fetchFootballJson, FootballApiError } from '../api/football'
 import { buildMatchInsightPrompt, matchInsightCacheKey } from '../utils/matchInsightPrompt'
 import { SLIDES } from '../utils/slides.ts'
+import { formatGroupName } from '../i18n'
+import { useLanguage } from '../i18n/LanguageContext'
+import { formatClockTime, formatDate, formatDateTime, formatTime } from '../i18n/format'
 import AIResultCard from '../components/ai/AIResultCard'
 import MatchInsightButton from '../components/ai/MatchInsightButton'
 import '../styles/Home.css'
 import '../styles/AIStyles.css'
 
+function isTranslationKey(message: string): boolean {
+    return message.startsWith('errors.')
+}
+
 export default function Home() {
+    const { dict, t, locale, timeZone, timeZoneLabel } = useLanguage()
     const [recentMatches, setRecentMatches] = useState<Match[]>([])
     const [liveMatches, setLiveMatches] = useState<Match[]>([])
     const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([])
@@ -26,7 +34,7 @@ export default function Home() {
 
     const [aiLoading, setAiLoading] = useState(false)
     const [aiInsight, setAiInsight] = useState<AIInsight | null>(null)
-    const [aiError, setAiError] = useState<string | null>(null) 
+    const [aiError, setAiError] = useState<string | null>(null)
 
     const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)
 
@@ -57,7 +65,7 @@ export default function Home() {
             const leaders = standingsData.standings
                 .filter((g) => g.type === 'TOTAL')
                 .map((g) => ({
-                    group: g.group.replace('GROUP_', 'Group '),
+                    group: g.group,
                     team: g.table[0]
                 }))
             setGroupLeaders(leaders)
@@ -66,7 +74,7 @@ export default function Home() {
 
             const message = error instanceof FootballApiError
                 ? error.message
-                : 'Could not load tournament data. Please try again later.'
+                : 'errors.loadData'
 
             setDataError(message)
         }
@@ -83,7 +91,7 @@ export default function Home() {
 
             if (response.status === 429) {
                 if (!cancelledRef.current) {
-                    setLiveFeedNotice('Live feed is rate-limited right now. Showing the latest cached update.')
+                    setLiveFeedNotice('errors.liveRateLimited')
                     liveRefreshBlockedUntilRef.current = Date.now() + 5 * 60_000
                 }
                 return
@@ -98,7 +106,7 @@ export default function Home() {
             setLiveFeedNotice(null)
         } catch {
             if (!cancelledRef.current) {
-                setLiveFeedNotice('Live feed is temporarily unavailable. Showing the latest cached update.')
+                setLiveFeedNotice('errors.liveUnavailable')
             }
         }
     }
@@ -117,7 +125,7 @@ export default function Home() {
             setAiInsight(data)
         } catch (error: unknown) {
             const previewError = error as { status?: number; message?: string } | null
-            const errorMessage = previewError?.message?.trim() || 'Match insight failed. Please try again.'
+            const errorMessage = previewError?.message?.trim() || t('ai.failed')
             setAiError(errorMessage)
         } finally {
             setAiLoading(false)
@@ -172,42 +180,41 @@ export default function Home() {
         return () => clearInterval(interval)
     }, [slideIndex])
 
-    if (loading) return <p className="loading">Loading...</p>
+    if (loading) return <p className="loading">{t('common.loading')}</p>
 
     const progressPercent = Math.round((playedMatches / totalMatches) * 100)
     const refreshLabel = lastUpdated
-        ? `Updated at ${new Date(lastUpdated).toLocaleTimeString('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-        })}`
-        : 'Refreshing live data'
+        ? t('home.updatedAt', { time: formatClockTime(locale, lastUpdated, timeZone) })
+        : t('home.refreshingLive')
+
+    const slideCaption = dict.slides[slideIndex]?.caption ?? SLIDES[slideIndex].caption
 
     return (
         <div className="home">
             {dataError ? (
                 <p className="home-api-error" role="alert">
-                    {dataError}
+                    {isTranslationKey(dataError) ? t(dataError) : dataError}
                 </p>
             ) : null}
             <div className="home-top">
                 <div className="home-card slide-up delay-1">
-                    <h3 className="home-card__title">🥇 Group Leaders</h3>
+                    <h3 className="home-card__title">{t('home.groupLeaders')}</h3>
                     <table className="mini-table">
                         <thead>
                             <tr>
-                                <th>Group</th>
-                                <th>Team</th>
-                                <th>P</th>
-                                <th>W</th>
-                                <th>D</th>
-                                <th>L</th>
-                                <th>Pts</th>
+                                <th>{t('common.group')}</th>
+                                <th>{t('table.team')}</th>
+                                <th>{t('table.played')}</th>
+                                <th>{t('table.won')}</th>
+                                <th>{t('table.draw')}</th>
+                                <th>{t('table.lost')}</th>
+                                <th>{t('table.points')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {groupLeaders.map(({ group, team }) => (
                                 <tr key={group} className="mini-table__row">
-                                    <td className="mini-table__pos">{group}</td>
+                                    <td className="mini-table__pos">{formatGroupName(dict, group)}</td>
                                     <td className="mini-table__team">
                                         <img src={team.team.crest} alt={team.team.name} width={20} height={20} />
                                         {team.team.shortName}
@@ -226,28 +233,31 @@ export default function Home() {
                 <div className="home-second">
                     <div className="home-second">
                         <div className="home-card slide-up delay-02">
-                            <h3 className="home-card__title">🔴 Live Match</h3>
-                            <p className="live-match__status">Data refreshes about every minute · {refreshLabel}</p>
-                            {liveFeedNotice ? <p className="live-match__status live-match__status--notice">{liveFeedNotice}</p> : null}
+                            <h3 className="home-card__title">{t('home.liveMatch')}</h3>
+                            <p className="live-match__status">{t('home.liveRefresh')} {refreshLabel}</p>
+                            {liveFeedNotice ? (
+                                <p className="live-match__status live-match__status--notice">
+                                    {t(liveFeedNotice)}
+                                </p>
+                            ) : null}
                             {liveMatches.length > 0 ? (
                                 liveMatches.map(match => (
                                     <div key={match.id} className="live-match">
                                         <div className="live-match__pill-row">
-                                            <span className="live-match__pill live-match__pill--live">LIVE TRACKER</span>
-                                            <span className="live-match__pill live-match__pill--delay">Delayed feed</span>
+                                            <span className="live-match__pill live-match__pill--live">{t('home.liveTracker')}</span>
+                                            <span className="live-match__pill live-match__pill--delay">{t('home.delayedFeed')}</span>
                                         </div>
 
                                         <p className="live-match__info">
-                                            Matchday {match.matchday} ·{' '}
-                                            {new Date(match.utcDate).toLocaleString('en-GB', {
-                                                timeZone: 'Europe/Helsinki',
+                                            {t('common.matchday')} {match.matchday} ·{' '}
+                                            {formatDateTime(locale, match.utcDate, timeZone, {
                                                 weekday: 'short',
                                                 day: 'numeric',
                                                 month: 'short',
                                                 hour: '2-digit',
                                                 minute: '2-digit',
                                             })}{' '}
-                                            <span className="timezone-label">EEST</span>
+                                            <span className="timezone-label">{timeZoneLabel}</span>
                                         </p>
 
                                         <div className="live-match__teams">
@@ -261,7 +271,7 @@ export default function Home() {
                                                 <span>{match.homeTeam.shortName}</span>
                                             </div>
 
-                                            <span className="live-match__vs">VS</span>
+                                            <span className="live-match__vs">{t('common.vs')}</span>
 
                                             <div className="live-match__team">
                                                 <img
@@ -280,13 +290,13 @@ export default function Home() {
                                     </div>
                                 ))
                             ) : (
-                                <p className="no-data">No match is live at the moment</p>
+                                <p className="no-data">{t('home.noLiveMatch')}</p>
                             )}
                         </div>
                     </div>
 
                     <div className="home-card slide-up delay-02">
-                        <h3 className="home-card__title">📅 Upcoming Matches</h3>
+                        <h3 className="home-card__title">{t('home.upcomingMatches')}</h3>
 
                         {upcomingMatches.length > 0 ? (
                             <div className="next-match">
@@ -302,7 +312,7 @@ export default function Home() {
                                             </div>
 
                                             <div className="next-match__middle">
-                                                <span className="next-match__vs">VS</span>
+                                                <span className="next-match__vs">{t('common.vs')}</span>
                                             </div>
 
                                             <div className="next-match__team">
@@ -312,20 +322,15 @@ export default function Home() {
                                         </div>
 
                                         <p className="next-match__date">
-                                            Matchday {match.matchday} ·{' '}
-                                            {new Date(match.utcDate).toLocaleDateString('en-GB', {
-                                                timeZone: 'Europe/Helsinki',
+                                            {t('common.matchday')} {match.matchday} ·{' '}
+                                            {formatDate(locale, match.utcDate, timeZone, {
                                                 weekday: 'short',
                                                 day: 'numeric',
-                                                month: 'short'
+                                                month: 'short',
                                             })}
                                             {' · '}
-                                            {new Date(match.utcDate).toLocaleTimeString('en-GB', {
-                                                timeZone: 'Europe/Helsinki',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                            <span className="timezone-label">EEST</span>
+                                            {formatTime(locale, match.utcDate, timeZone)}
+                                            <span className="timezone-label">{timeZoneLabel}</span>
                                         </p>
 
                                         <MatchInsightButton
@@ -337,19 +342,19 @@ export default function Home() {
                                 ))}
                             </div>
                         ) : (
-                            <p className="no-data">No upcoming matches</p>
+                            <p className="no-data">{t('home.noUpcomingMatches')}</p>
                         )}
-                    </div>                   
+                    </div>
                 </div>
             </div>
 
             <div className="home-mid">
                 <div className="home-card slide-up delay-03 home-mid__full">
-                    <h3 className="home-card__title">📊 Tournament Progress</h3>
+                    <h3 className="home-card__title">{t('home.tournamentProgress')}</h3>
                     <div className="progress-section">
                         <div className="progress-label">
-                            <span>Group Stage</span>
-                            <span>{playedMatches} of {totalMatches} played</span>
+                            <span>{t('home.groupStage')}</span>
+                            <span>{t('home.playedOf', { played: playedMatches, total: totalMatches })}</span>
                         </div>
                         <div className="progress-bar">
                             <div
@@ -357,19 +362,21 @@ export default function Home() {
                                 style={{ '--progress': `${progressPercent}%` } as React.CSSProperties}
                             />
                         </div>
-                        <p className="progress-remaining">{totalMatches - playedMatches} matches remaining</p>
+                        <p className="progress-remaining">
+                            {t('home.matchesRemaining', { count: totalMatches - playedMatches })}
+                        </p>
                     </div>
                 </div>
 
                 <div className="home-card carousel-card slide-up delay-04">
-                    <h3 className="home-card__title">📸 World Cup 2026</h3>
+                    <h3 className="home-card__title">{t('home.worldCupCarousel')}</h3>
                     <div className="carousel">
                         <img
                             src={SLIDES[slideIndex].url}
-                            alt={SLIDES[slideIndex].caption}
+                            alt={slideCaption}
                             className={`carousel__img ${slideVisible ? 'carousel__img--visible' : 'carousel__img--hidden'}`}
                         />
-                        <div className="carousel__caption">{SLIDES[slideIndex].caption}</div>
+                        <div className="carousel__caption">{slideCaption}</div>
                         <div className="carousel__credit">📷 {SLIDES[slideIndex].credit}</div>
                         <div className="carousel__controls">
                             <button className="carousel__arrow" onClick={() => goToSlide((slideIndex - 1 + SLIDES.length) % SLIDES.length)}>‹</button>
@@ -388,7 +395,7 @@ export default function Home() {
                 </div>
 
                 <div className="home-card slide-up delay-05">
-                    <h3 className="home-card__title">🥅 Top Scorers</h3>
+                    <h3 className="home-card__title">{t('home.topScorers')}</h3>
                     <div className="scorers-list">
                         {scorers.map((s, i) => (
                             <div key={i} className="scorer-row">
@@ -404,7 +411,7 @@ export default function Home() {
             </div>
 
             <div className="home-card slide-up delay-06">
-                <h3 className="home-card__title">⚽ Latest Results</h3>
+                <h3 className="home-card__title">{t('home.latestResults')}</h3>
                 <div className="results-list">
                     {recentMatches.map(match => (
                         <div key={match.id} className="result-row">
@@ -442,8 +449,7 @@ export default function Home() {
                         setSelectedMatchId(null)
                     }}
                 />
-            ) : null}        
+            ) : null}
         </div>
     )
 }
-

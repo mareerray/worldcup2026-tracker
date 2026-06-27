@@ -1,104 +1,63 @@
-import '../styles/About.css';
+import '../styles/About.css'
+import { useLanguage } from '../i18n/LanguageContext'
 
 export default function About() {
+    const { dict, t } = useLanguage()
+
     return (
         <div className="about">
-
             <div className="about-hero">
                 <img
                     src="https://pplx-res.cloudinary.com/image/upload/pplx_search_images/9af200ec22a572eac1b90fddbb57e1604d7efb8c.jpg"
-                    alt="FIFA World Cup 2026 Logo"
+                    alt={t('about.heroTitle')}
                     className="about-hero__img"
                 />
-                <h2>FIFA World Cup 2026</h2>
-                <p>The 23rd edition of the FIFA World Cup, hosted across the United States, Canada, and Mexico.</p>
+                <h2>{t('about.heroTitle')}</h2>
+                <p>{t('about.heroText')}</p>
             </div>
 
             <div className="about-grid">
-
                 <div className="about-card">
                     <span className="about-card__icon">🗓️</span>
-                    <h3>Tournament Dates</h3>
-                    <p>11 June – 19 July 2026</p>
+                    <h3>{t('about.tournamentDates')}</h3>
+                    <p>{t('about.datesValue')}</p>
                 </div>
 
                 <div className="about-card">
                     <span className="about-card__icon">🌎</span>
-                    <h3>Host Nations</h3>
-                    <p>United States, Canada & Mexico</p>
+                    <h3>{t('about.hostNations')}</h3>
+                    <p>{t('about.hostValue')}</p>
                 </div>
 
                 <div className="about-card">
                     <span className="about-card__icon">🏟️</span>
-                    <h3>Stadiums</h3>
-                    <p>16 venues across 3 countries</p>
+                    <h3>{t('about.stadiums')}</h3>
+                    <p>{t('about.stadiumsValue')}</p>
                 </div>
 
                 <div className="about-card">
                     <span className="about-card__icon">🌍</span>
-                    <h3>Teams</h3>
-                    <p>48 nations competing for the first time in this expanded format</p>
+                    <h3>{t('about.teams')}</h3>
+                    <p>{t('about.teamsValue')}</p>
                 </div>
 
                 <div className="about-card">
                     <span className="about-card__icon">⚽</span>
-                    <h3>Format</h3>
-                    <p>12 groups of 4 teams, top 2 + 8 best 3rd place teams advance</p>
+                    <h3>{t('about.format')}</h3>
+                    <p>{t('about.formatValue')}</p>
                 </div>
 
                 <div className="about-card">
                     <span className="about-card__icon">🏆</span>
-                    <h3>Defending Champion</h3>
-                    <p>Argentina (winners of Qatar 2022)</p>
+                    <h3>{t('about.defendingChampion')}</h3>
+                    <p>{t('about.championValue')}</p>
                 </div>
-
             </div>
 
             <div className="about-facts">
-                <h3 className="about-facts__title">⚡ Did You Know?</h3>
+                <h3 className="about-facts__title">{t('about.didYouKnow')}</h3>
                 <div className="about-facts__grid">
-                    {[
-                        {
-                            emoji: "🏆",
-                            fact: "Brazil holds the record for most World Cup wins with 5 titles."
-                        },
-                        {
-                            emoji: "⚽",
-                            fact: "This is the first World Cup with 48 teams — up from 32 in previous editions."
-                        },
-                        {
-                            emoji: "📏",
-                            fact: "The 2026 World Cup will be the largest ever, with 104 matches played in total."
-                        },
-                        {
-                            emoji: "🌎",
-                            fact: "It's only the second time 3 nations co-host the World Cup — the first was 2002 (Japan & South Korea)."
-                        },
-                        {
-                            emoji: "🥇",
-                            fact: "Argentina are the reigning champions, having beaten France in a penalty shootout in Qatar 2022."
-                        },
-                        {
-                            emoji: "👟",
-                            fact: "Just Fontaine holds the record for most goals in a single World Cup — 13 goals in 1958."
-                        },
-                        {
-                            emoji: "📺",
-                            fact: "The 2026 World Cup final will be held at MetLife Stadium in New Jersey, USA — the largest stadium in the tournament."
-                        },
-                        {
-                            emoji: "🌡️",
-                            fact: "To avoid summer heat, matches in the USA will be played in air-conditioned stadiums for the first time in World Cup history."
-                        },
-                        {
-                            emoji: "🇺🇸",
-                            fact: "The USA last hosted the World Cup in 1994, where it set attendance records that stood for decades."
-                        },
-                        {
-                            emoji: "⏱️",
-                            fact: "FIFA introduced stoppage time accuracy in 2022 — matches now regularly see 10+ minutes of added time."
-                        },
-                    ].map(({ emoji, fact }, i) => (
+                    {dict.about.facts.map(({ emoji, fact }, i) => (
                         <div key={i} className="fact-card">
                             <span className="fact-card__emoji">{emoji}</span>
                             <p className="fact-card__text">{fact}</p>
@@ -108,20 +67,19 @@ export default function About() {
             </div>
 
             <div className="about-links">
-                <h3>External Resources</h3>
+                <h3>{t('about.externalResources')}</h3>
                 <div className="about-links__grid">
                     <a href="https://www.fifa.com/fifaplus/en/tournaments/mens/worldcup/canadamexicousa2026" target="_blank" rel="noopener noreferrer" className="about-link">
-                        🌐 Official FIFA Website
+                        {t('about.linkFifa')}
                     </a>
                     <a href="https://www.bbc.com/sport/football/world-cup" target="_blank" rel="noopener noreferrer" className="about-link">
-                        📰 BBC Sport Coverage
+                        {t('about.linkBbc')}
                     </a>
                     <a href="https://www.football-data.org" target="_blank" rel="noopener noreferrer" className="about-link">
-                        🔌 Data powered by football-data.org
+                        {t('about.linkData')}
                     </a>
                 </div>
             </div>
-
         </div>
     )
 }

@@ -1,19 +1,21 @@
 import '../styles/Footer.css'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import LinkedInIcon from '@mui/icons-material/LinkedIn'
+import { useLanguage } from '../i18n/LanguageContext'
 
 export default function Footer() {
     const year = new Date().getFullYear()
+    const { t } = useLanguage()
 
     return (
         <footer className="footer">
             <div className="footer__inner">
                 <p className="footer__copy">
-                    © {year} FIFA World Cup 2026 Tracker
+                    © {year} {t('header.title')}
                 </p>
 
                 <div className="footer__dev">
-                    <span>Built by</span>
+                    <span>{t('footer.builtBy')}</span>
                     <a href="https://mayuree-dev.vercel.app" target="_blank" rel="noopener noreferrer" className="footer__link">
                         Mayuree Reunsati
                     </a>

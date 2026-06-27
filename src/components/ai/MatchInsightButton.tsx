@@ -1,3 +1,5 @@
+import { useLanguage } from '../../i18n/LanguageContext'
+
 type Props = {
     loading: boolean
     disabled?: boolean
@@ -5,6 +7,8 @@ type Props = {
 }
 
 export default function MatchInsightButton({ loading, disabled, onClick }: Props) {
+    const { t } = useLanguage()
+
     return (
         <button
             type="button"
@@ -12,7 +16,7 @@ export default function MatchInsightButton({ loading, disabled, onClick }: Props
             onClick={onClick}
             disabled={disabled}
             aria-busy={loading}
-            aria-label="Get match insight"
+            aria-label={t('ai.getInsight')}
         >
             {loading ? (
                 <span className="preview-action__spinner" aria-hidden="true" />
@@ -32,7 +36,7 @@ export default function MatchInsightButton({ loading, disabled, onClick }: Props
                 </svg>
             )}
             <span className="preview-action__label">
-                {loading ? '…' : 'Match insight'}
+                {loading ? '…' : t('ai.matchInsight')}
             </span>
             {!loading ? <span className="ai-badge" aria-hidden="true">AI</span> : null}
         </button>

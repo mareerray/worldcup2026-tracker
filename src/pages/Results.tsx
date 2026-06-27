@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import type { Match } from '../types'
 import MatchCard from '../components/MatchCard'
+import { useLanguage } from '../i18n/LanguageContext'
 
 export default function Results() {
     const [matches, setMatches] = useState<Match[]>([])
     const [loading, setLoading] = useState(true)
-    const [selectedMatchday, setSelectedMatchday] = useState<number | null>(null) // null instead of 1
+    const [selectedMatchday, setSelectedMatchday] = useState<number | null>(null)
+    const { t } = useLanguage()
 
-    // Fetch current matchday once on load
     useEffect(() => {
         fetch(`/api/football/competitions/WC`, {
             headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
@@ -16,9 +17,8 @@ export default function Results() {
             .then(json => setSelectedMatchday(json.currentSeason?.currentMatchday ?? 1))
     }, [])
 
-    // Fetch matches whenever matchday changes
     useEffect(() => {
-        if (selectedMatchday === null) return // wait for matchday to be known
+        if (selectedMatchday === null) return
         fetch(`/api/football/competitions/WC/matches?matchday=${selectedMatchday}`, {
             headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
         })
@@ -43,13 +43,13 @@ export default function Results() {
                             setSelectedMatchday(day)
                         }}
                     >
-                        Matchday {day}
+                        {t('results.matchday', { day })}
                     </button>
                 ))}
             </div>
 
             {loading ? (
-                <p className="loading">Loading matches...</p>
+                <p className="loading">{t('results.loading')}</p>
             ) : (
                 <div className="matches-grid">
                     {matches.map(match => (

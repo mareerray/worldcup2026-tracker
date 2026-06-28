@@ -41,11 +41,19 @@ function padToEven(count: number) {
 }
 
 function buildSlots(matches: Match[], minSlots: number) {
-  const slots: (Match | null)[] = matches.map((m) => m)
+  // Sort by match ID so bracket order matches FIFA's official structure
+  const sorted = [...matches].sort((a, b) => a.id - b.id)
+  const slots: (Match | null)[] = sorted.map((m) => m)
   const target = padToEven(Math.max(minSlots, slots.length))
   while (slots.length < target) slots.push(null)
   return slots
 }
+// function buildSlots(matches: Match[], minSlots: number) {
+//   const slots: (Match | null)[] = matches.map((m) => m)
+//   const target = padToEven(Math.max(minSlots, slots.length))
+//   while (slots.length < target) slots.push(null)
+//   return slots
+// }
 
 function toPairs(slots: (Match | null)[]) {
   const pairs: [Match | null, Match | null][] = []

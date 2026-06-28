@@ -5,9 +5,10 @@ interface Props {
 }
 
 export default function GroupTable({ standing }: Props) {
-    return (
+        return (
         <div className="group-table">
             <h2>{standing.group}</h2>
+            <h1>{`COMPLETED`}</h1>
             <table>
                 <thead>
                     <tr>

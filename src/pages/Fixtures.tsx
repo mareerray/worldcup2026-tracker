@@ -7,7 +7,7 @@ export default function Fixtures() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        fetch(`/api/football/competitions/WC/matches?status=SCHEDULED`, {
+        fetch(`/api/football/competitions/WC/matches?status=SCHEDULED&stage=LAST_32`, {
             headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
         })
             .then(res => res.json())
@@ -50,9 +50,9 @@ export default function Fixtures() {
                                     <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={24} height={24} />
                                 </div>
                             </div>
-                            <div className="fixture-row__matchday">
+                            {/* <div className="fixture-row__matchday">
                                 MD {match.matchday}
-                            </div>
+                            </div> */}
                         </div>
                     )
                 })}

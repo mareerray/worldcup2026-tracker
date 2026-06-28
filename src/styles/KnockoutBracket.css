@@ -143,6 +143,7 @@
 
 .bracket-card--finished {
   border-color: rgba(97, 160, 25, 0.28);
+  background: rgba(97, 160, 25, 0.14);
 }
 
 .bracket-card--placeholder {

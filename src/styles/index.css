@@ -374,8 +374,15 @@ td strong {
 .matchday-tabs {
   display: flex;
   gap: 0.4rem;
+  margin-top: 0.5rem;
   margin-bottom: 0.5rem;
   flex-wrap: wrap;
+}
+
+@media (max-width:1200px) {
+  .matchday-tabs {
+    margin-top: 0;
+  }
 }
 
 /* Separator between main and sub row */

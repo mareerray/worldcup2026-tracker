@@ -5,27 +5,33 @@ import MatchCard from '../components/MatchCard'
 const KNOCKOUT_STAGES = [
     { key: 'LAST_32',       label: 'Round of 32' },
     { key: 'LAST_16',       label: 'Round of 16' },
+    { key: 'FINALS',         label: 'Finals' },
+]
+
+const FINALS_STAGES = [
     { key: 'QUARTER_FINALS', label: 'Quarter-finals' },
-    { key: 'SEMI_FINALS',   label: 'Semi-finals' },
-    { key: 'THIRD_PLACE',   label: '3rd Place' },
-    { key: 'FINAL',         label: 'Final' },
-  ]
+    { key: 'SEMI_FINALS',    label: 'Semi-finals' },
+    { key: 'THIRD_PLACE',    label: '3rd Place' },
+    { key: 'FINAL',          label: 'Final' },
+]
 
 export default function Results() {
     const [matches, setMatches] = useState<Match[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedMatchday, setSelectedMatchday] = useState<number | null>(null) // null instead of 1
-    const [selectedStage, setSelectedStage] = useState<string | null>(null)
-    const [activeTab, setActiveTab] = useState<'group' | 'knockout'>('group')
+    const [selectedStage, setSelectedStage] = useState<string | null>('LAST_32')
+    const [activeTab, setActiveTab] = useState<'group' | 'knockout'>('knockout')
+    const [finalsMatches, setFinalsMatches] = useState<Record<string, Match[]>>({})
+    const [finalsLoaded, setFinalsLoaded] = useState(false)
 
     // Fetch current matchday once on load
-    useEffect(() => {
-        fetch(`/api/football/competitions/WC`, {
-            headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
-        })
-            .then(res => res.json())
-            .then(json => setSelectedMatchday(json.currentSeason?.currentMatchday ?? 1))
-    }, [])
+    // useEffect(() => {
+    //     fetch(`/api/football/competitions/WC`, {
+    //         headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
+    //     })
+    //         .then(res => res.json())
+    //         .then(json => setSelectedMatchday(json.currentSeason?.currentMatchday ?? 1))
+    // }, [])
 
     // Fetch matches whenever matchday changes
     useEffect(() => {
@@ -43,15 +49,41 @@ export default function Results() {
     useEffect(() => {
         if (activeTab !== 'knockout' || selectedStage === null) return
         setLoading(true)
-        fetch(`/api/football/competitions/WC/matches?stage=${selectedStage}&status=FINISHED`, {
-          headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
-        })
-        .then(res => res.json())
-        .then(json => {
-            setMatches(json.matches ?? [])
+      
+        if (selectedStage === 'FINALS') {
+          if (finalsLoaded) {
             setLoading(false)
-        })
-    }, [activeTab, selectedStage])
+            return
+          }
+      
+          Promise.all(
+            FINALS_STAGES.map(s =>
+              fetch(`/api/football/competitions/WC/matches?stage=${s.key}&status=FINISHED`, {
+                headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
+              })
+                .then(res => res.json())
+                .then(json => ({ ...s, matches: json.matches ?? [] }))
+            )
+          ).then(results => {
+            const grouped: Record<string, Match[]> = {}
+            results.forEach(({ key, matches }) => {
+              if (matches.length > 0) grouped[key] = matches
+            })
+            setFinalsMatches(grouped)
+            setFinalsLoaded(true)
+            setLoading(false)
+          })
+        } else {
+          fetch(`/api/football/competitions/WC/matches?stage=${selectedStage}&status=FINISHED`, {
+            headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
+          })
+            .then(res => res.json())
+            .then(json => {
+              setMatches(json.matches ?? [])
+              setLoading(false)
+            })
+        }
+      }, [activeTab, selectedStage, finalsLoaded])
 
     function handleTabSwitch(tab: 'group' | 'knockout') {
         setActiveTab(tab)
@@ -110,44 +142,27 @@ export default function Results() {
           {/* Match list */}
           {loading ? (
             <p className="loading">Loading matches...</p>
-          ) : matches.length === 0 ? (
-            <p className="no-data">No results yet for this stage.</p>
-          ) : (
-            <div className="matches-grid">
-              {matches.map(match => (
-                <MatchCard key={match.id} match={match} />
-              ))}
+            ) : selectedStage === 'FINALS' ? (
+            <div className="knockout-results">
+                {FINALS_STAGES.filter(s => finalsMatches[s.key]?.length > 0).map(s => (
+                <div key={s.key} className="knockout-results__section">
+                    <h3 className="knockout-results__title">{s.label}</h3>
+                    <div className="matches-grid">
+                    {finalsMatches[s.key].map(match => <MatchCard key={match.id} match={match} />)}
+                    </div>
+                </div>
+                ))}
+                {Object.keys(finalsMatches).length === 0 && (
+                <p className="no-data">No finals results yet.</p>
+                )}
             </div>
-          )}
+            ) : matches.length === 0 ? (
+            <p className="no-data">No results yet for this stage.</p>
+            ) : (
+            <div className="matches-grid">
+                {matches.map(match => <MatchCard key={match.id} match={match} />)}
+            </div>
+            )}
         </div>
-      )
-
-    // return (
-    //     <div>
-    //         <div className="matchday-tabs">
-    //             {matchdays.map(day => (
-    //                 <button
-    //                     key={day}
-    //                     className={`matchday-tab ${selectedMatchday === day ? 'active' : ''}`}
-    //                     onClick={() => {
-    //                         setLoading(true)
-    //                         setSelectedMatchday(day)
-    //                     }}
-    //                 >
-    //                     Matchday {day}
-    //                 </button>
-    //             ))}
-    //         </div>
-
-    //         {loading ? (
-    //             <p className="loading">Loading matches...</p>
-    //         ) : (
-    //             <div className="matches-grid">
-    //                 {matches.map(match => (
-    //                     <MatchCard key={match.id} match={match} />
-    //                 ))}
-    //             </div>
-    //         )}
-    //     </div>
-    // )
+    )
 }

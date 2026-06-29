@@ -49,12 +49,6 @@ function buildSlots(matches: Match[], minSlots: number) {
   while (slots.length < target) slots.push(null)
   return slots
 }
-// function buildSlots(matches: Match[], minSlots: number) {
-//   const slots: (Match | null)[] = matches.map((m) => m)
-//   const target = padToEven(Math.max(minSlots, slots.length))
-//   while (slots.length < target) slots.push(null)
-//   return slots
-// }
 
 function toPairs(slots: (Match | null)[]) {
   const pairs: [Match | null, Match | null][] = []

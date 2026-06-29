@@ -5,10 +5,6 @@
             "destination": "/api/football"
         },
         {
-            "source": "/api/gemini",
-            "destination": "/api/gemini"
-        },
-        {
             "source": "/((?!api/).*)",
             "destination": "/index.html"
         }

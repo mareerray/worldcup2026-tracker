@@ -1,5 +1,5 @@
 import type { Connect, Plugin } from 'vite'
-import { callGeminiGenerateContent, getGeminiApiKey } from './api/geminiShared'
+import { callGeminiGenerateContent, getGeminiApiKey } from './lib/geminiUpstream'
 
 function readJsonBody(req: Connect.IncomingMessage): Promise<unknown> {
     return new Promise((resolve, reject) => {

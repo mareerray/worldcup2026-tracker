@@ -350,20 +350,29 @@ td strong {
 }
 
 /* ----- Matchday tabs ----- */
+/* ── Tab rows ── */
 .matchday-tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
   flex-wrap: wrap;
 }
 
+/* Separator between main and sub row */
+.matchday-tabs + .matchday-tabs {
+  padding-top: 0.5rem;
+  margin-bottom: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Base tab (sub-tabs) ── */
 .matchday-tab {
-  padding: 0.5rem 1.25rem;
+  padding: 0.3rem 0.95rem;     
   border-radius: 20px;
   border: 1px solid var(--border);
   background: transparent;
-  color: rgba(255,255,255,0.5);
-  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;           /* smaller text */
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -380,11 +389,38 @@ td strong {
   font-weight: 600;
 }
 
+/* ── Main tabs (Group Stage / Knockout Stage) ── */
+.matchday-tab-main {
+  padding: 0.7rem 0.9rem;    /* only slightly bigger than sub-tabs */
+  font-size: 1rem;         /* just a touch larger, not massive */
+  font-weight: 600;
+  border-width: 2px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 20px;
+}
+
+.matchday-tab-main:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.matchday-tab-main.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ── Loading ── */
 .loading {
   text-align: center;
   margin-top: 4rem;
   font-size: 1rem;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* ----- Matches cards ------ */

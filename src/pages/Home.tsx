@@ -280,7 +280,6 @@ export default function Home() {
                       </div>
                     </div>
                     <p className="next-match__date">
-                      Matchday {match.matchday} ·{' '}
                       {new Date(match.utcDate).toLocaleDateString('en-GB', {
                         timeZone: 'Europe/Helsinki',
                         weekday: 'short',

@@ -37,6 +37,7 @@ export default function Home() {
     round16: [] as Match[],
     quarterFinals: [] as Match[],
     semiFinals: [] as Match[],
+    thirdPlace: null as Match | null,
     final: null as Match | null,
   })
   const [liveFeedNotice, setLiveFeedNotice] = useState<string | null>(null)
@@ -61,6 +62,7 @@ export default function Home() {
         round16Data,
         quarterFinalsData,
         semiFinalsData,
+        thirdPlaceData,
         finalData,
         finishedData,
         scheduledData,
@@ -70,6 +72,7 @@ export default function Home() {
         fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=LAST_16'),
         fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=QUARTER_FINALS'),
         fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=SEMI_FINALS'),
+        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=THIRD_PLACE'),
         fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=FINAL'),
         fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?status=FINISHED&stage=LAST_32'),
         fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?status=SCHEDULED&stage=LAST_32'),
@@ -85,6 +88,7 @@ export default function Home() {
         round16: sortByDate(round16Data.matches || []),
         quarterFinals: sortByDate(quarterFinalsData.matches || []),
         semiFinals: sortByDate(semiFinalsData.matches || []),
+        thirdPlace: sortByDate(thirdPlaceData.matches || [])[0] ?? null,
         final: sortByDate(finalData.matches || [])[0] ?? null,
       })
       setRecentMatches(finishedData.matches?.slice(-6).reverse() || [])
@@ -313,6 +317,7 @@ export default function Home() {
           round16={knockoutRounds.round16}
           quarterFinals={knockoutRounds.quarterFinals}
           semiFinals={knockoutRounds.semiFinals}
+          thirdPlace={knockoutRounds.thirdPlace}
           final={knockoutRounds.final}
         />
       </div>

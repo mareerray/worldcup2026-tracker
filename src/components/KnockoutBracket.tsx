@@ -5,6 +5,7 @@ type KnockoutBracketProps = {
   round16: Match[]
   quarterFinals: Match[]
   semiFinals: Match[]
+  thirdPlace: Match | null
   final: Match | null
 }
 
@@ -130,13 +131,49 @@ function BracketRound({
   )
 }
 
-function BracketFinalRound({ title, match, slotFlex }: { title: string; match: Match | null; slotFlex: number }) {
+function BracketSemiFinalsRound({
+  semiMatches,
+  thirdPlaceMatch,
+  slotFlex,
+}: {
+  semiMatches: (Match | null)[]
+  thirdPlaceMatch: Match | null
+  slotFlex: number
+}) {
+  const semi1 = semiMatches[0] ?? null
+  const semi2 = semiMatches[1] ?? null
+
+  return (
+    <div className="bracket-round bracket-round--semis bracket-round--connected">
+      <div className="bracket-round__title">Semi-finals</div>
+      <div className="bracket-round__pairs">
+        <div className="bracket-pair bracket-pair--semis" style={{ flex: slotFlex }}>
+          <div className="bracket-semi-anchor bracket-semi-anchor--top">
+            <BracketSlot match={semi1} />
+          </div>
+          <div className="bracket-third-place">
+            <span className="bracket-third-place__label">Match for third place</span>
+            <BracketSlot match={thirdPlaceMatch} />
+          </div>
+          <div className="bracket-semi-anchor bracket-semi-anchor--bottom">
+            <BracketSlot match={semi2} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function BracketFinalRound({ match, slotFlex }: { match: Match | null; slotFlex: number }) {
   return (
     <div className="bracket-round bracket-round--final">
-      <div className="bracket-round__title">{title}</div>
+      <div className="bracket-round__title">Final</div>
       <div className="bracket-round__pairs">
-        <div className="bracket-pair bracket-pair--single" style={{ flex: slotFlex }}>
-          <BracketSlot match={match} />
+        <div className="bracket-pair bracket-pair--single bracket-final-slot" style={{ flex: slotFlex }}>
+          <div className="bracket-final">
+            <span className="bracket-final__label">Final match</span>
+            <BracketSlot match={match} />
+          </div>
         </div>
       </div>
     </div>
@@ -148,6 +185,7 @@ export default function KnockoutBracket({
   round16,
   quarterFinals,
   semiFinals,
+  thirdPlace,
   final,
 }: KnockoutBracketProps) {
   const r32Slots = buildSlots(round32, round32.length || 2)
@@ -161,7 +199,7 @@ export default function KnockoutBracket({
   const r32Pairs = toPairs(r32Slots)
   const r16Pairs = toPairs(r16Slots)
   const qfPairs = toPairs(qfSlots)
-  const sfPairs = toPairs(sfSlots)
+  const sfMatches = sfSlots.slice(0, 2)
 
   const showFullBracket = r32Pairs.length > 1
 
@@ -186,8 +224,8 @@ export default function KnockoutBracket({
           <BracketRound title="Round of 32" pairs={r32Pairs} pairFlex={1} showConnectors />
           <BracketRound title="Round of 16" pairs={r16Pairs} pairFlex={2} showConnectors />
           <BracketRound title="Quarter-finals" pairs={qfPairs} pairFlex={4} showConnectors />
-          <BracketRound title="Semi-finals" pairs={sfPairs} pairFlex={8} showConnectors />
-          <BracketFinalRound title="Final" match={final} slotFlex={16} />
+          <BracketSemiFinalsRound semiMatches={sfMatches} thirdPlaceMatch={thirdPlace} slotFlex={8} />
+          <BracketFinalRound match={final} slotFlex={16} />
         </div>
       </div>
     </div>

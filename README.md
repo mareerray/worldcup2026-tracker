@@ -4,7 +4,7 @@ A real-time World Cup 2026 dashboard built with React, TypeScript and Vite.
 Live data powered by the [football-data.org](https://www.football-data.org) API, with optional **AI match insights** powered by Google Gemini.
 
 ## 🚀 Live Demo
-[worldcup2026-tracker-app.vercel.app](https://worldcup2026-tracker-app.vercel.app) 
+[worldcup2026-tracker-app.vercel.app](https://worldcup2026-tracker-app.vercel.app)
 
 <div>
 <img src="public/images/screenshot.png" width="700">
@@ -13,13 +13,12 @@ Live data powered by the [football-data.org](https://www.football-data.org) API,
 ## ✨ Features
 
 ### 🏠 Home Dashboard
-- 🥇 **Group Leaderboard** — quick snapshot of the top team in each of the 12 groups
-- 🔴 **Live Match** — shows the current live match with real-time score, or a "no match live" message
+- 🔴 **Live Matches** — in-play fixtures with scores (auto-refreshes every 90s)
 - 📅 **Upcoming Matches** — next fixtures with date, time and timezone (EEST)
 - 🤖 **AI Match Insight** — generate a short AI preview for upcoming fixtures (title, summary, key factor)
-- 🥅 **Top Scorers** — live scorer rankings for WC 2026
+- 🏆 **Knockout Bracket** — full tournament tree from Round of 32 through the Final, with the match for third place between the semi-finals
+- 🥅 **Top Scorers** — goal scorer rankings for WC 2026
 - ⚽ **Latest Results** — most recent match scores at a glance
-- 📊 **Tournament Progress** — matches played vs remaining with a progress bar
 - 📸 **Image Carousel** — WC 2026 venues and highlights
 
 ### 🤖 AI Match Insight
@@ -27,6 +26,7 @@ Live data powered by the [football-data.org](https://www.football-data.org) API,
 - Results appear in a floating insight card with an **AI** badge and disclaimer
 - Responses are cached per match so repeat clicks do not call the API again
 - Built with `gemini-2.5-flash` and structured JSON output (`title`, `summary`, `keyFactor`)
+- API key is kept server-side via `api/gemini.ts` (not exposed in the browser)
 
 ### 📄 Pages
 - 🏆 **Standings** — full group tables for all 12 groups with P, W, D, L, GD and PTS
@@ -46,7 +46,7 @@ Live data powered by the [football-data.org](https://www.football-data.org) API,
 | football-data.org API | Live match data |
 | Google Gemini API | AI match insights |
 | Vitest | Unit testing |
-| Vercel | Deployment & API proxy |
+| Vercel | Deployment & API proxies |
 
 ## 📦 Getting Started
 
@@ -69,10 +69,17 @@ Create a `.env` file at the root:
 
 ```env
 VITE_API_KEY=your_football_data_api_key
-VITE_GEMINI_API_KEY=your_gemini_api_key
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
+| Variable | Used by | Notes |
+|----------|---------|-------|
+| `VITE_API_KEY` | Browser + `api/football.ts` | Sent as `X-Auth-Token` to football-data.org |
+| `GEMINI_API_KEY` | `api/gemini.ts` (server only) | Never bundled into the client |
+
 > **Note:** Restart the dev server after changing `.env`. Never commit `.env` to Git.
+
+On Vercel, set both variables in **Settings → Environment Variables**. The football proxy also accepts `API_KEY` if `VITE_API_KEY` is not set server-side.
 
 ### Run locally
 
@@ -94,64 +101,71 @@ npm run build
 
 ## 📁 Project Structure
 
-````
+```
 src/
 ├── api/
-│   └── football.ts         # Client helper for football-data.org requests
+│   └── footballClient.ts       # Browser helper — calls /api/football
 ├── components/
 │   ├── ai/
-│   │   ├── AIResultCard.tsx      # Floating insight result card
-│   │   ├── AIFloatingButton.tsx  # Floating AI button (optional)
-│   │   └── MatchInsightButton.tsx # Match insight trigger button
+│   │   ├── AIResultCard.tsx
+│   │   ├── AIFloatingButton.tsx
+│   │   └── MatchInsightButton.tsx
+│   ├── KnockoutBracket.tsx     # Knockout tree UI
 │   ├── Footer.tsx
 │   ├── GroupTable.tsx
 │   ├── Header.tsx
 │   ├── MatchCard.tsx
 │   ├── Navbar.tsx
-│   └── SearchBar.tsx
+│   ├── SearchBar.tsx
+│   └── TeamFormation.tsx
 ├── pages/
 │   ├── About.tsx
 │   ├── Fixtures.tsx
-│   ├── Home.tsx            # Dashboard + AI match insight flow
+│   ├── Home.tsx
 │   ├── Results.tsx
 │   ├── Standings.tsx
 │   └── TeamPage.tsx
 ├── services/
-│   └── geminiService.ts    # Gemini API calls & caching
+│   └── geminiService.ts        # Calls /api/gemini + client-side caching
 ├── styles/
-│   ├── AIStyles.css        # AI button & insight card styles
-│   ├── About.css
-│   ├── Footer.css
-│   ├── Home.css
-│   ├── index.css
-│   ├── SearchBar.css
-│   └── TeamPage.css
+│   ├── KnockoutBracket.css
+│   └── ...
 ├── types/
-│   ├── ai.ts               # AI insight types
-│   └── index.ts
 ├── utils/
-│   └── slides.ts           # Carousel image data
 ├── App.tsx
 └── main.tsx
 
 api/
-└── football.ts               # Vercel serverless proxy for football-data.org
-````
+├── football.ts                 # Vercel serverless proxy → football-data.org
+└── gemini.ts                   # Vercel serverless proxy → Google Gemini
+
+lib/
+└── geminiUpstream.ts           # Shared Gemini logic for local dev middleware
+```
 
 ## 🔑 APIs
 
-### Football data
-This project uses the free tier of [football-data.org](https://www.football-data.org).  
-Rate limit: ~10 requests/minute.
+Both external APIs are proxied through `/api/*` so keys stay off the public client where possible.
 
-In production, requests go through `api/football.ts` on Vercel. In local dev, Vite proxies `/api/football` to football-data.org.
+| Proxy | Server file | Client helper | Upstream |
+|-------|-------------|---------------|----------|
+| `/api/football/*` | `api/football.ts` | `src/api/footballClient.ts` | football-data.org v4 |
+| `POST /api/gemini` | `api/gemini.ts` | `src/services/geminiService.ts` | Google Gemini |
+
+- **Local dev:** Vite proxies `/api/football` to football-data.org; a dev middleware handles `/api/gemini`
+- **Production:** Vercel runs `api/football.ts` and `api/gemini.ts` as serverless functions
+
+See [API_ENDPOINTS.md](API_ENDPOINTS.md) for the full list of endpoints used in this project.
+
+### Football data
+This project uses the free tier of [football-data.org](https://www.football-data.org).
+Rate limit: ~10 requests/minute — avoid hammering the API during development.
 
 ### Gemini (AI Match Insight)
-Match insights use the [Google Gemini API](https://ai.google.dev) via `src/services/geminiService.ts`.
+Match insights use the [Google Gemini API](https://ai.google.dev) via the `/api/gemini` proxy.
 
 - Model: `gemini-2.5-flash`
 - Free/prepaid tiers have request and billing limits — click one match at a time while testing
-- The Gemini key is read from `VITE_GEMINI_API_KEY` in the browser (fine for personal projects; use a server proxy for production apps with public traffic)
 
 ---
 

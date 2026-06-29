@@ -197,7 +197,7 @@
 
 .bracket-round--final .bracket-card:not(.bracket-card--placeholder) {
   border-color: rgba(245, 200, 66, 0.35);
-  box-shadow: 0 8px 24px rgba(245, 200, 66, 0.08);
+  box-shadow: 0 8px 24px rgba(245, 200, 66, 0.2);
 }
 
 .bracket-round--connected .bracket-pair::after {

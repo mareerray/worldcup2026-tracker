@@ -2,18 +2,6 @@ import type { AIInsight } from '../types/ai'
 
 type GeminiError = Error & { status?: number }
 
-const GEMINI_MODEL = 'gemini-2.5-flash'
-
-const INSIGHT_SCHEMA = {
-    type: 'object',
-    properties: {
-        title: { type: 'string' },
-        summary: { type: 'string' },
-        keyFactor: { type: 'string' },
-    },
-    required: ['title', 'summary', 'keyFactor'],
-} as const
-
 const cache = new Map<string, AIInsight>()
 let blockedUntil = 0
 
@@ -101,29 +89,11 @@ export async function getAIInsight(prompt: string, cacheKey?: string): Promise<A
         )
     }
 
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-
-    if (!apiKey || apiKey === 'your_key_here') {
-        throwGeminiError('Missing Gemini API key. Add VITE_GEMINI_API_KEY to your .env file.')
-    }
-
-    const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseMimeType: 'application/json',
-                    responseSchema: INSIGHT_SCHEMA,
-                    temperature: 0.7,
-                    maxOutputTokens: 512,
-                    thinkingConfig: { thinkingBudget: 0 },
-                },
-            }),
-        }
-    )
+    const res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+    })
 
     if (!res.ok) {
         const message = await parseGeminiError(res)

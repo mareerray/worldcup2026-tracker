@@ -482,6 +482,25 @@
     .home-second .timezone-label {
         font-size: 0.66rem;
     }
+
+    .carousel__img {
+        height: 220px;
+    }
+
+    .result-row {
+        padding: 0.65rem 0.5rem;
+        gap: 0.25rem;
+    }
+
+    .result-row__team {
+        font-size: 0.8rem;
+        gap: 0.35rem;
+    }
+
+    .result-row__score {
+        font-size: 0.95rem;
+        min-width: 52px;
+    }
 }
 
 @media (max-width: 768px) {

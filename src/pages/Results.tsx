@@ -49,7 +49,6 @@ export default function Results() {
 
     useEffect(() => {
         if (activeTab !== 'knockout' || selectedStage === null) return
-        setLoading(true)
       
         if (selectedStage === 'FINALS') {
           if (finalsLoaded) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Match } from '../types'
 import MatchCard from '../components/MatchCard'
+import '../styles/Results.css'
 
 const KNOCKOUT_STAGES = [
     { key: 'LAST_32',       label: 'Round of 32' },

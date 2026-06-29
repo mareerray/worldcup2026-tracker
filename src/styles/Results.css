@@ -1,0 +1,169 @@
+/* ----- Matchday tabs ----- */
+/* ── Tab rows ── */
+.matchday-tabs {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+@media (max-width:1200px) {
+    .matchday-tabs {
+        margin-top: 0;
+    }
+}
+
+/* Separator between main and sub row */
+.matchday-tabs+.matchday-tabs {
+    padding-top: 0.5rem;
+    margin-bottom: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+/* ── Base tab (sub-tabs) ── */
+.matchday-tab {
+    padding: 0.3rem 0.95rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    /* smaller text */
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.matchday-tab:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.matchday-tab.active {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* ── Main tabs (Group Stage / Knockout Stage) ── */
+.matchday-tab-main {
+    padding: 0.7rem 0.9rem;
+    /* only slightly bigger than sub-tabs */
+    font-size: 1rem;
+    /* just a touch larger, not massive */
+    font-weight: 600;
+    /* border-width: 2px; */
+    color: var(--text);
+    background: transparent;
+    /* border: 1px solid var(--border); */
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 20px;
+}
+
+.matchday-tab-main:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.matchday-tab-main.active {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* ── Knockout results ── */
+.knockout-results__section {
+    margin-bottom: 2rem;
+}
+
+.knockout-results__title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+}
+
+/* ── Loading ── */
+.loading {
+    text-align: center;
+    margin-top: 4rem;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+
+
+/* ----- Matches cards ------ */
+.matches-section {
+    margin-bottom: 2.5rem;
+}
+
+.matches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.match-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.match-card--live {
+    border-color: #ff4444;
+}
+
+.match-card__date {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 0.75rem;
+    text-align: center;
+}
+
+.live-badge {
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.match-card__teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.match-card__team {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.match-card__team--away {
+    justify-content: flex-end;
+}
+
+.match-card__score {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-heading);
+    min-width: 60px;
+    text-align: center;
+}
+
+.match-card__vs {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.3);
+}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchFootballJson } from '../api/football'
+import { fetchFootballJson } from '../api/footballClient'
 import '../styles/SearchBar.css'
 
 type Team = {

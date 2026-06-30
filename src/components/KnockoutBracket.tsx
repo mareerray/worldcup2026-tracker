@@ -22,6 +22,19 @@ function formatKickoff(utcDate: string) {
   })
 }
 
+// Temporary: hardcoded R16 bracket order until Round of 32 is complete.
+// Maps slot index (0–7) to the known API match ID.
+const R16_SLOT_ORDER: Record<number, number> = {
+  0: 537375, // M89 — PAR vs ?           → Jul 4, 22:00 EEST
+  1: 537376, // M90 — CAN vs MAR         → Jul 4, 20:00 EEST
+  2: 537379, // M93 — POR/CRO vs ESP/AUT → Jul 6, 22:00 EEST
+  3: 537380, // M94 — USA/BIH vs BEL/SEN → Jul 7, 03:00 EEST
+  4: 537377, // M91 — BRA vs ?           → Jul 5, 23:00 EEST
+  5: 537378, // M92 — ? vs ?             → Jul 6, 03:00 EEST
+  6: 537381, // M95 — ? vs ?             → Jul 7, 19:00 EEST
+  7: 537382, // M96 — ? vs ?             → Jul 7, 23:00 EEST
+}
+
 function scoreText(match: Match) {
   if (LIVE_STATUSES.has(match.status) || match.status === 'FINISHED') {
     return `${match.score.fullTime.home ?? 0} – ${match.score.fullTime.away ?? 0}`
@@ -102,7 +115,21 @@ function assignRoundSlots(
     }
   }
 
+  // Fallback: teams not yet known (previous round unfinished).
+  // Use hardcoded slot order for R16 when all 8 slots are empty.
+  if (targetSlots === 8) {
+    const byId = Object.fromEntries(remaining.map(m => [m.id, m]))
+    for (let i = 0; i < targetSlots; i++) {
+      const id = R16_SLOT_ORDER[i]
+      if (id && byId[id]) slots[i] = byId[id]
+    }
+    return slots
+  }
+
   // remaining.sort((a, b) => a.id - b.id)
+  // Generic Fallback: teams not yet known (previous round unfinished).
+  // Sort by date as a best-effort guess — bracket position may be
+  // incorrect until previous round results are available.
   remaining.sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
   for (const match of remaining) {
     const emptyIndex = slots.findIndex((slot) => slot === null)

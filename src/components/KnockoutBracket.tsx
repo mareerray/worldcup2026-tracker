@@ -120,6 +120,7 @@ function assignRoundSlots(
   if (targetSlots === 8) {
     const byId = Object.fromEntries(remaining.map(m => [m.id, m]))
     for (let i = 0; i < targetSlots; i++) {
+      if (slots[i] !== null) continue // already filled by team-matching, skip this slot
       const id = R16_SLOT_ORDER[i]
       if (id && byId[id]) slots[i] = byId[id]
     }

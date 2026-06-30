@@ -102,7 +102,8 @@ function assignRoundSlots(
     }
   }
 
-  remaining.sort((a, b) => a.id - b.id)
+  // remaining.sort((a, b) => a.id - b.id)
+  remaining.sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
   for (const match of remaining) {
     const emptyIndex = slots.findIndex((slot) => slot === null)
     if (emptyIndex < 0) break

@@ -1,4 +1,4 @@
-import type { Match } from '../types'
+import type { Match, MatchTeam } from '../types'
 
 type KnockoutBracketProps = {
   round32: Match[]
@@ -37,16 +37,78 @@ function winnerName(match: Match) {
   return home > away ? match.homeTeam.name : match.awayTeam.name
 }
 
-function padToEven(count: number) {
-  return count % 2 === 0 ? count : count + 1
+function winnerTeam(match: Match): MatchTeam | null {
+  if (match.status !== 'FINISHED') return null
+  const home = match.score.fullTime.home ?? 0
+  const away = match.score.fullTime.away ?? 0
+  if (home === away) return null
+  return home > away ? match.homeTeam : match.awayTeam
 }
 
-function buildSlots(matches: Match[], minSlots: number) {
-  // Sort by match ID so bracket order matches FIFA's official structure
+function matchInvolvesTeam(match: Match, team: MatchTeam): boolean {
+  if (team.id != null) {
+    if (match.homeTeam.id === team.id || match.awayTeam.id === team.id) return true
+  }
+  if (team.name) {
+    if (match.homeTeam.name === team.name || match.awayTeam.name === team.name) return true
+  }
+  return false
+}
+
+// Full World Cup knockout tree — every round must share the same flex total (8)
+// so pair heights line up across columns.
+const BRACKET_SLOT_COUNT = {
+  round32: 16,
+  round16: 8,
+  quarterFinals: 4,
+  semiFinals: 2,
+} as const
+
+function buildR32Slots(matches: Match[], targetSlots: number) {
   const sorted = [...matches].sort((a, b) => a.id - b.id)
-  const slots: (Match | null)[] = sorted.map((m) => m)
-  const target = padToEven(Math.max(minSlots, slots.length))
-  while (slots.length < target) slots.push(null)
+  const slots: (Match | null)[] = sorted.slice(0, targetSlots)
+  while (slots.length < targetSlots) slots.push(null)
+  return slots
+}
+
+function participantTeam(feeder: Match | null): MatchTeam | null {
+  if (!feeder) return null
+  return winnerTeam(feeder)
+}
+
+// API match IDs are not in bracket-tree order. Place each fixture in the slot
+// whose feeders (two previous-round matches) produced the teams involved.
+function assignRoundSlots(
+  previousSlots: (Match | null)[],
+  matches: Match[],
+  targetSlots: number
+) {
+  const slots: (Match | null)[] = Array.from({ length: targetSlots }, () => null)
+  const remaining = [...matches]
+
+  for (let slot = 0; slot < targetSlots; slot++) {
+    const teamA = participantTeam(previousSlots[slot * 2] ?? null)
+    const teamB = participantTeam(previousSlots[slot * 2 + 1] ?? null)
+    if (!teamA && !teamB) continue
+
+    const index = remaining.findIndex(
+      (match) =>
+        (teamA && matchInvolvesTeam(match, teamA)) ||
+        (teamB && matchInvolvesTeam(match, teamB))
+    )
+    if (index >= 0) {
+      slots[slot] = remaining[index]
+      remaining.splice(index, 1)
+    }
+  }
+
+  remaining.sort((a, b) => a.id - b.id)
+  for (const match of remaining) {
+    const emptyIndex = slots.findIndex((slot) => slot === null)
+    if (emptyIndex < 0) break
+    slots[emptyIndex] = match
+  }
+
   return slots
 }
 
@@ -182,20 +244,24 @@ export default function KnockoutBracket({
   thirdPlace,
   final,
 }: KnockoutBracketProps) {
-  const r32Slots = buildSlots(round32, round32.length || 2)
-  const r16Min = Math.max(round16.length, r32Slots.length / 2, 2)
-  const r16Slots = buildSlots(round16, r16Min)
-  const qfMin = Math.max(quarterFinals.length, r16Slots.length / 2, 2)
-  const qfSlots = buildSlots(quarterFinals, qfMin)
-  const sfMin = Math.max(semiFinals.length, qfSlots.length / 2, 2)
-  const sfSlots = buildSlots(semiFinals, sfMin)
+  const r32Slots = buildR32Slots(round32, BRACKET_SLOT_COUNT.round32)
+  const r16Slots = assignRoundSlots(r32Slots, round16, BRACKET_SLOT_COUNT.round16)
+  const qfSlots = assignRoundSlots(r16Slots, quarterFinals, BRACKET_SLOT_COUNT.quarterFinals)
+  const sfSlots = assignRoundSlots(qfSlots, semiFinals, BRACKET_SLOT_COUNT.semiFinals)
 
   const r32Pairs = toPairs(r32Slots)
   const r16Pairs = toPairs(r16Slots)
   const qfPairs = toPairs(qfSlots)
   const sfMatches = sfSlots.slice(0, 2)
 
-  const showFullBracket = r32Pairs.length > 1
+  const knockoutMatchCount =
+    round32.length +
+    round16.length +
+    quarterFinals.length +
+    semiFinals.length +
+    (thirdPlace ? 1 : 0) +
+    (final ? 1 : 0)
+  const showFullBracket = knockoutMatchCount > 2
 
   if (!showFullBracket) {
     return (

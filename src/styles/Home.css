@@ -650,9 +650,9 @@
     justify-content: center;
 }
 
-.score--winner {
+/* .score--winner {
     color: var(--accent);
-}
+} */
 
 .score--divider {
     color: rgba(255, 255, 255, 0.3);

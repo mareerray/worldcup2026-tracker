@@ -1,4 +1,5 @@
 import type { Match, MatchTeam } from '../types'
+import { formatScore } from '../utils/formatScore'
 
 type KnockoutBracketProps = {
   round32: Match[]
@@ -37,25 +38,43 @@ const R16_SLOT_ORDER: Record<number, number> = {
 
 function scoreText(match: Match) {
   if (LIVE_STATUSES.has(match.status) || match.status === 'FINISHED') {
-    return `${match.score.fullTime.home ?? 0} – ${match.score.fullTime.away ?? 0}`
+    const s = formatScore(match)
+    if (s.hasPenalties) {
+      return `${s.home} – ${s.away} (${s.penHome} – ${s.penAway})`
+    }
+    return `${s.home} – ${s.away}`
   }
   return null
 }
 
 function winnerName(match: Match) {
   if (match.status !== 'FINISHED') return null
-  const home = match.score.fullTime.home ?? 0
-  const away = match.score.fullTime.away ?? 0
-  if (home === away) return null
-  return home > away ? match.homeTeam.name : match.awayTeam.name
+  const s = formatScore(match)
+
+  if (s.home !== s.away) {
+    return s.home > s.away ? match.homeTeam.name : match.awayTeam.name
+  }
+
+  if (s.hasPenalties && s.penHome !== s.penAway) {
+    return s.penHome! > s.penAway! ? match.homeTeam.name : match.awayTeam.name
+  }
+
+  return null
 }
 
 function winnerTeam(match: Match): MatchTeam | null {
   if (match.status !== 'FINISHED') return null
-  const home = match.score.fullTime.home ?? 0
-  const away = match.score.fullTime.away ?? 0
-  if (home === away) return null
-  return home > away ? match.homeTeam : match.awayTeam
+  const s = formatScore(match)
+
+  if (s.home !== s.away) {
+    return s.home > s.away ? match.homeTeam : match.awayTeam
+  }
+
+  if (s.hasPenalties && s.penHome !== s.penAway) {
+    return s.penHome! > s.penAway! ? match.homeTeam : match.awayTeam
+  }
+
+  return null
 }
 
 function matchInvolvesTeam(match: Match, team: MatchTeam): boolean {

@@ -1,4 +1,5 @@
 import type { Match } from '../types'
+import { formatScore } from '../utils/formatScore'
 
 interface Props {
     match: Match
@@ -12,6 +13,7 @@ export default function MatchCard({ match, compact }: Props) {
 
     const isFinished = match.status === 'FINISHED'
     const isLive = match.status === 'IN_PLAY' || match.status === 'PAUSED'
+    const s = formatScore(match)
 
     if (compact) {
         return (
@@ -22,7 +24,10 @@ export default function MatchCard({ match, compact }: Props) {
                         <span>{match.homeTeam.shortName}</span>
                     </div>
                     <div className="match-card__score-compact">
-                        {match.score.fullTime.home} – {match.score.fullTime.away}
+                        {s.home} – {s.away}
+                        {s.hasPenalties && (
+                            <span className="score--pens">({s.penHome}-{s.penAway})</span>
+                        )}
                     </div>
                     <div className="match-card__team-compact match-card__team-compact--away">
                         <span>{match.awayTeam.shortName}</span>
@@ -45,10 +50,20 @@ export default function MatchCard({ match, compact }: Props) {
                 </div>
                 <div className="match-card__score">
                     {isFinished || isLive
-                        ? <><strong>{match.score.fullTime.home}</strong> – <strong>{match.score.fullTime.away}</strong></>
-                        : <span className="match-card__vs">vs</span>
-                    }
-                </div>
+                        ? (
+                            <>
+                                <div className="score--main">
+                                    <strong>{s.home}</strong> – <strong>{s.away}</strong>
+                                </div>
+                                {s.hasPenalties && (
+                                    <span className="score--pens">({s.penHome}-{s.penAway})</span>
+                                )}
+                            </>
+                        )
+                        : (
+                            <span className="match-card__vs">vs</span>
+                        )
+                    }                </div>
                 <div className="match-card__team match-card__team--away">
                     <span>{match.awayTeam.shortName}</span>
                     <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={28} height={28} />

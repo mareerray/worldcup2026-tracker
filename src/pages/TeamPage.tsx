@@ -1,72 +1,35 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import type { Match, Team, Scorer } from '../types'
+import { formatScore } from '../utils/formatScore'
 import '../styles/TeamPage.css'
 import TeamFormation from '../components/TeamFormation'
-
-type Coach = {
-  id: number
-  firstName: string
-  lastName: string
-  name: string
-  dateOfBirth?: string
-  nationality?: string
-}
-
-type Scorer = {
-  player: {
-    id: number
-    name: string
-    position?: string
-    dateOfBirth?: string
-  }
-  team: {
-    id: number
-    name: string
-    crest: string
-  }
-  goals: number
-}
-
-type Team = {
-  id: number
-  name: string
-  shortName: string
-  tla: string
-  crest: string
-  squad?: {
-    id: number
-    name: string
-    position?: string
-    dateOfBirth?: string
-    nationality?: string
-  }[]
-  coach?: Coach
-}
-
-type Match = {
-  id: number
-  utcDate: string
-  stage?: string
-  status?: string
-  homeTeam: { id: number; name: string; shortName: string; crest: string }
-  awayTeam: { id: number; name: string; shortName: string; crest: string }
-  score: { fullTime: { home: number | null; away: number | null } }
-}
+import MatchCard from '../components/MatchCard'
 
 function isTeamEliminated(matches: Match[], upcomingMatch: Match | null, teamId: number): boolean {
-  if (upcomingMatch) return false // still has a match scheduled → not eliminated
+  if (upcomingMatch) return false
 
-  const groupMatchesPlayed = matches.filter(m => m.stage === 'GROUP_STAGE' || !m.stage && m.status === 'FINISHED').length // only count truly finished ones
-  const groupStageDone = groupMatchesPlayed >= 3 // all 3 group games played
+  const groupMatchesPlayed = matches.filter(m => m.stage === 'GROUP_STAGE' || !m.stage && m.status === 'FINISHED').length
+  const groupStageDone = groupMatchesPlayed >= 3
 
-  if (!groupStageDone) return false // mid-group-stage loss doesn't mean eliminated yet
+  if (!groupStageDone) return false
 
   const lastKnockoutLoss = matches.find(m => {
-    if (m.status !== 'FINISHED') return false //skip IN_PLAY, PAUSED, SCHEDULED matches entirely
+    if (m.status !== 'FINISHED') return false
+    const s = formatScore(m)
     const isHome = m.homeTeam.id === teamId
-    const teamScore = isHome ? m.score.fullTime.home : m.score.fullTime.away
-    const oppScore = isHome ? m.score.fullTime.away : m.score.fullTime.home
-    return teamScore !== null && oppScore !== null && teamScore < oppScore
+
+    if (s.home !== s.away) {
+      const teamScore = isHome ? s.home : s.away
+      const oppScore = isHome ? s.away : s.home
+      return teamScore < oppScore
+    }
+    if (s.hasPenalties && s.penHome !== s.penAway) {
+      const teamPens = isHome ? s.penHome! : s.penAway!
+      const oppPens = isHome ? s.penAway! : s.penHome!
+      return teamPens < oppPens
+    }
+    return false
   })
 
   return !!lastKnockoutLoss
@@ -161,23 +124,15 @@ export default function TeamPage() {
   return (
     <div className="team-page">
       <div className="team-page__header">
-        <div className="team-page__header-left"> {/* 👈 wrap crest + name together */}
+        <div className="team-page__header-left"> {/* wrap crest + name together */}
           <img src={team.crest} alt={team.name} width={72} height={72} />
           <div>
             <h1>{team.name}</h1>
             <p>{team.shortName}</p>
           </div>
         </div>
-        {eliminated && <span className="badge badge--eliminated">Eliminated</span>} 
-      </div>
-      {/* <div className="team-page__header">
-        <img src={team.crest} alt={team.name} width={72} height={72} />
-        <div>
-          <h1>{team.name}</h1>
-          <p>{team.shortName}</p>
-        </div>          
         {eliminated && <span className="badge badge--eliminated">Eliminated</span>}
-      </div> */}
+      </div>
 
       {upcomingMatch && (
         <>
@@ -215,35 +170,9 @@ export default function TeamPage() {
         </>
       )}
 
-      <h2>Recent Results</h2>
-      <div className="results-list">
-        {matches.map(match => (
-          <div key={match.id} className="result-row">
-            <div className="result-row__team result-row__team--home">
-              <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={24} height={24} />
-              <span>{match.homeTeam.shortName}</span>
-            </div>
-            <div className="result-row__center">
-              <div className="result-row__score">
-                <span>{match.score.fullTime.home}</span>
-                <span className="score--divider">–</span>
-                <span>{match.score.fullTime.away}</span>
-              </div>
-              <p className="result-row__date">
-                {new Date(match.utcDate).toLocaleDateString('en-GB', {
-                  timeZone: 'Europe/Helsinki',
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric'
-                })}
-              </p>
-            </div>
-            <div className="result-row__team result-row__team--away">
-              <span>{match.awayTeam.shortName}</span>
-              <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={24} height={24} />
-            </div>
-          </div>
-        ))}
+      <h2>Latest Results</h2>
+      <div className="matches-grid matches-grid--team-page">
+        {matches.map(match => <MatchCard key={match.id} match={match} />)}
       </div>
 
       <>

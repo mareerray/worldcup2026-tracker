@@ -8,6 +8,7 @@ import { SLIDES } from '../utils/slides.ts'
 import AIResultCard from '../components/ai/AIResultCard'
 import MatchInsightButton from '../components/ai/MatchInsightButton'
 import KnockoutBracket from '../components/KnockoutBracket'
+import { formatScore } from '../utils/formatScore'
 import '../styles/Home.css'
 import '../styles/AIStyles.css'
 import '../styles/KnockoutBracket.css'
@@ -228,7 +229,7 @@ export default function Home() {
                         month: 'short',
                         hour: '2-digit',
                         minute: '2-digit',
-                        
+
                       })}{' '}
                       <span className="timezone-label">EEST</span>
                     </p>
@@ -308,7 +309,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      
+
       <div className="home-card slide-up delay-1">
         <h3 className="home-card__title">🏆 Knockout Matches</h3>
         <KnockoutBracket
@@ -367,27 +368,33 @@ export default function Home() {
       <div className="home-card slide-up delay-06">
         <h3 className="home-card__title">⚽ Latest Results</h3>
         <div className="results-list">
-          {recentMatches.map(match => (
-            <div key={match.id} className="result-row">
-              <div className="result-row__team result-row__team--home">
-                <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={24} height={24} />
-                <span>{match.homeTeam.shortName}</span>
+          {recentMatches.map(match => {
+            const s = formatScore(match)
+            // console.log('MATCH:', match.homeTeam.shortName, match.awayTeam.shortName, match.score)
+            // console.log('FORMATTED:', s)
+            return (
+              <div key={match.id} className="result-row">
+                <div className="result-row__team result-row__team--home">
+                  <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={24} height={24} />
+                  <span>{match.homeTeam.shortName}</span>
+                </div>
+                <div className="result-row__score">
+                  <div className="score--main">
+                    <span className={s.home > s.away ? 'score--winner' : ''}>{s.home}</span>
+                    <span className="score--divider">–</span>
+                    <span className={s.away > s.home ? 'score--winner' : ''}>{s.away}</span>
+                  </div>
+                  {s.hasPenalties && (
+                    <span className="score--pens">({s.penHome}-{s.penAway})</span>
+                  )}
+                </div>
+                <div className="result-row__team result-row__team--away">
+                  <span>{match.awayTeam.shortName}</span>
+                  <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={24} height={24} />
+                </div>
               </div>
-              <div className="result-row__score">
-                <span className={match.score.fullTime.home! > match.score.fullTime.away! ? 'score--winner' : ''}>
-                  {match.score.fullTime.home}
-                </span>
-                <span className="score--divider">–</span>
-                <span className={match.score.fullTime.away! > match.score.fullTime.home! ? 'score--winner' : ''}>
-                  {match.score.fullTime.away}
-                </span>
-              </div>
-              <div className="result-row__team result-row__team--away">
-                <span>{match.awayTeam.shortName}</span>
-                <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={24} height={24} />
-              </div>
-            </div>
-          ))}
+            )
+          })}        
         </div>
       </div>
 

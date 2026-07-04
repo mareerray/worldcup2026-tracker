@@ -75,6 +75,10 @@
     border-radius: 8px;
 }
 
+.matches-grid--team-page {
+    grid-template-columns: repeat(2, 1fr);
+}
+
 .scorers-list {
     display: flex;
     flex-direction: column;

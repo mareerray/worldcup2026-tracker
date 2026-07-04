@@ -4,6 +4,23 @@ export interface Team {
     shortName: string
     tla: string
     crest: string
+    squad?: {
+        id: number
+        name: string
+        position?: string
+        dateOfBirth?: string
+        nationality?: string
+    }[]
+    coach?: Coach
+}
+
+export type Coach = {
+    id: number
+    firstName: string
+    lastName: string
+    name: string
+    dateOfBirth?: string
+    nationality?: string
 }
 
 export interface TableEntry {
@@ -23,12 +40,7 @@ export interface Standing {
     group: string
     table: TableEntry[]
     position: number
-    team: {
-        id: number
-        name: string
-        shortName: string
-        crest: string
-    }
+    team: Team
     playedGames: number
     won: number
     draw: number
@@ -52,6 +64,17 @@ export interface Score {
     away: number | null
 }
 
+export type Scorer = {
+    player: {
+        id: number
+        name: string
+        position?: string
+        dateOfBirth?: string
+    }
+    team: Team
+    goals: number
+}
+
 export interface Match {
     id: number
     utcDate: string
@@ -60,14 +83,13 @@ export interface Match {
     homeTeam: MatchTeam
     awayTeam: MatchTeam
     group: string
+    stage: string
     venue: string
     score: {
+        duration?: 'REGULAR' | 'EXTRA_TIME' | 'PENALTY_SHOOTOUT'
         fullTime: Score
+        regularTime?: Score
+        penalties?: Score
     }
 }
 
-export interface Scorer {
-    player: { name: string }
-    team: { name: string; shortName: string; crest: string }
-    goals: number
-}

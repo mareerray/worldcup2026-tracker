@@ -79,6 +79,12 @@
     grid-template-columns: repeat(2, 1fr);
 }
 
+@media (max-width: 640px) {
+    .matches-grid--team-page {
+        grid-template-columns: 1fr;
+    }
+}
+
 .scorers-list {
     display: flex;
     flex-direction: column;

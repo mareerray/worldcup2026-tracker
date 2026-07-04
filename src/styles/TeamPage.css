@@ -42,6 +42,18 @@
     /* prevents the badge from shrinking on smaller screens */
 }
 
+.badge--active {
+    color: var(--accent);
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    /* pill shape */
+    white-space: nowrap;
+    flex-shrink: 0;
+    /* prevents the badge from shrinking on smaller screens */
+}
+
 .team-page__header img {
     width: 72px;
     height: 72px;

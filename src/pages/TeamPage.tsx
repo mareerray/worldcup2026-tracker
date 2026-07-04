@@ -44,6 +44,8 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const eliminated = team ? isTeamEliminated(matches, upcomingMatch, team.id) : false
+  const hasStarted = matches.some(m => m.status === 'FINISHED') || !!upcomingMatch
+  const stillIn = team ? hasStarted && !eliminated : false
 
   useEffect(() => {
     if (!id) return
@@ -132,6 +134,7 @@ export default function TeamPage() {
           </div>
         </div>
         {eliminated && <span className="badge badge--eliminated">Eliminated</span>}
+        {stillIn && <span className="badge badge--active">Active</span>}
       </div>
 
       {upcomingMatch && (
@@ -152,6 +155,7 @@ export default function TeamPage() {
               </div>
             </div>
             <p className="next-match__date">
+              🟢{' '}
               {new Date(upcomingMatch.utcDate).toLocaleDateString('en-GB', {
                 timeZone: 'Europe/Helsinki',
                 weekday: 'short',

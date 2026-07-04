@@ -13,6 +13,33 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 18px;
     background: var(--bg-card);
+    justify-content: space-between;
+}
+
+@media (max-width: 480px) {
+    .team-page__header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+}
+
+.team-page__header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    /* spacing between crest and name */
+}
+
+.badge--eliminated {
+    color: #b91c1c;
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    /* pill shape */
+    white-space: nowrap;
+    flex-shrink: 0;
+    /* prevents the badge from shrinking on smaller screens */
 }
 
 .team-page__header img {

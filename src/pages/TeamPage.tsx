@@ -46,9 +46,30 @@ type Team = {
 type Match = {
   id: number
   utcDate: string
-  homeTeam: { name: string; shortName: string; crest: string }
-  awayTeam: { name: string; shortName: string; crest: string }
+  stage?: string
+  status?: string
+  homeTeam: { id: number; name: string; shortName: string; crest: string }
+  awayTeam: { id: number; name: string; shortName: string; crest: string }
   score: { fullTime: { home: number | null; away: number | null } }
+}
+
+function isTeamEliminated(matches: Match[], upcomingMatch: Match | null, teamId: number): boolean {
+  if (upcomingMatch) return false // still has a match scheduled → not eliminated
+
+  const groupMatchesPlayed = matches.filter(m => m.stage === 'GROUP_STAGE' || !m.stage && m.status === 'FINISHED').length // only count truly finished ones
+  const groupStageDone = groupMatchesPlayed >= 3 // all 3 group games played
+
+  if (!groupStageDone) return false // mid-group-stage loss doesn't mean eliminated yet
+
+  const lastKnockoutLoss = matches.find(m => {
+    if (m.status !== 'FINISHED') return false //skip IN_PLAY, PAUSED, SCHEDULED matches entirely
+    const isHome = m.homeTeam.id === teamId
+    const teamScore = isHome ? m.score.fullTime.home : m.score.fullTime.away
+    const oppScore = isHome ? m.score.fullTime.away : m.score.fullTime.home
+    return teamScore !== null && oppScore !== null && teamScore < oppScore
+  })
+
+  return !!lastKnockoutLoss
 }
 
 export default function TeamPage() {
@@ -59,6 +80,7 @@ export default function TeamPage() {
   const [scorers, setScorers] = useState<Scorer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const eliminated = team ? isTeamEliminated(matches, upcomingMatch, team.id) : false
 
   useEffect(() => {
     if (!id) return
@@ -123,145 +145,156 @@ export default function TeamPage() {
       } finally {
         if (!cancelled) setLoading(false)
       }
-  }
+    }
 
     loadTeam()
 
     return () => {
-    cancelled = true
-  }
-}, [id])
+      cancelled = true
+    }
+  }, [id])
 
-if (loading) return <p className="loading">Loading...</p>
-if (error) return <p className="error-message">⚠️ {error}</p>
-if (!team) return <p className="no-data">Team not found</p>
+  if (loading) return <p className="loading">Loading...</p>
+  if (error) return <p className="error-message">⚠️ {error}</p>
+  if (!team) return <p className="no-data">Team not found</p>
 
-return (
-  <div className="team-page">
-    <div className="team-page__header">
-      <img src={team.crest} alt={team.name} width={72} height={72} />
-      <div>
-        <h1>{team.name}</h1>
-        <p>{team.shortName}</p>
-      </div>
-    </div>
-
-    {upcomingMatch && (
-      <>
-        <h2>Upcoming Match</h2>
-        <div className="next-match__item team-page__upcoming">
-          <div className="next-match__teams">
-            <div className="next-match__team">
-              <img src={upcomingMatch.homeTeam.crest} alt={upcomingMatch.homeTeam.name} width={32} height={32} />
-              <span>{upcomingMatch.homeTeam.shortName}</span>
-            </div>
-            <div className="next-match__middle">
-              <span className="next-match__vs">VS</span>
-            </div>
-            <div className="next-match__team">
-              <img src={upcomingMatch.awayTeam.crest} alt={upcomingMatch.awayTeam.name} width={32} height={32} />
-              <span>{upcomingMatch.awayTeam.shortName}</span>
-            </div>
+  return (
+    <div className="team-page">
+      <div className="team-page__header">
+        <div className="team-page__header-left"> {/* 👈 wrap crest + name together */}
+          <img src={team.crest} alt={team.name} width={72} height={72} />
+          <div>
+            <h1>{team.name}</h1>
+            <p>{team.shortName}</p>
           </div>
-          <p className="next-match__date">
-            {new Date(upcomingMatch.utcDate).toLocaleDateString('en-GB', {
-              timeZone: 'Europe/Helsinki',
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short'
-            })}
-            {' · '}
-            {new Date(upcomingMatch.utcDate).toLocaleTimeString('en-GB', {
-              timeZone: 'Europe/Helsinki',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-            <span className="timezone-label">EEST</span>
-          </p>
         </div>
-      </>
-    )}
+        {eliminated && <span className="badge badge--eliminated">Eliminated</span>} 
+      </div>
+      {/* <div className="team-page__header">
+        <img src={team.crest} alt={team.name} width={72} height={72} />
+        <div>
+          <h1>{team.name}</h1>
+          <p>{team.shortName}</p>
+        </div>          
+        {eliminated && <span className="badge badge--eliminated">Eliminated</span>}
+      </div> */}
 
-    <h2>Recent Results</h2>
-    <div className="results-list">
-      {matches.map(match => (
-        <div key={match.id} className="result-row">
-          <div className="result-row__team result-row__team--home">
-            <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={24} height={24} />
-            <span>{match.homeTeam.shortName}</span>
-          </div>
-          <div className="result-row__center">
-            <div className="result-row__score">
-              <span>{match.score.fullTime.home}</span>
-              <span className="score--divider">–</span>
-              <span>{match.score.fullTime.away}</span>
+      {upcomingMatch && (
+        <>
+          <h2>Upcoming Match</h2>
+          <div className="next-match__item team-page__upcoming">
+            <div className="next-match__teams">
+              <div className="next-match__team">
+                <img src={upcomingMatch.homeTeam.crest} alt={upcomingMatch.homeTeam.name} width={32} height={32} />
+                <span>{upcomingMatch.homeTeam.shortName}</span>
+              </div>
+              <div className="next-match__middle">
+                <span className="next-match__vs">VS</span>
+              </div>
+              <div className="next-match__team">
+                <img src={upcomingMatch.awayTeam.crest} alt={upcomingMatch.awayTeam.name} width={32} height={32} />
+                <span>{upcomingMatch.awayTeam.shortName}</span>
+              </div>
             </div>
-            <p className="result-row__date">
-              {new Date(match.utcDate).toLocaleDateString('en-GB', {
+            <p className="next-match__date">
+              {new Date(upcomingMatch.utcDate).toLocaleDateString('en-GB', {
                 timeZone: 'Europe/Helsinki',
+                weekday: 'short',
                 day: 'numeric',
-                month: 'short',
-                year: 'numeric'
+                month: 'short'
               })}
+              {' · '}
+              {new Date(upcomingMatch.utcDate).toLocaleTimeString('en-GB', {
+                timeZone: 'Europe/Helsinki',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+              <span className="timezone-label">EEST</span>
             </p>
           </div>
-          <div className="result-row__team result-row__team--away">
-            <span>{match.awayTeam.shortName}</span>
-            <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={24} height={24} />
-          </div>
-        </div>
-      ))}
-    </div>
+        </>
+      )}
 
-    <>
-      <h2>Scorers</h2>
-      <div className="scorers-list">
-        {scorers.length > 0 ? (
-          scorers.slice(0, 5).map((s, i) => (
-            <div key={s.player.id} className="scorer-row">
-              <span className="scorer-row__rank">{i + 1}</span>
-              <img src={s.team.crest} alt={s.team.name} width={20} height={20} />
-              <span className="scorer-row__name">{s.player.name}</span>
-              <span className="scorer-row__goals">{s.goals} ⚽</span>
+      <h2>Recent Results</h2>
+      <div className="results-list">
+        {matches.map(match => (
+          <div key={match.id} className="result-row">
+            <div className="result-row__team result-row__team--home">
+              <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={24} height={24} />
+              <span>{match.homeTeam.shortName}</span>
             </div>
-          ))
-        ) : (
-          <div>
-            <span className="scorer-row__none">No Scorers from this team yet</span>
+            <div className="result-row__center">
+              <div className="result-row__score">
+                <span>{match.score.fullTime.home}</span>
+                <span className="score--divider">–</span>
+                <span>{match.score.fullTime.away}</span>
+              </div>
+              <p className="result-row__date">
+                {new Date(match.utcDate).toLocaleDateString('en-GB', {
+                  timeZone: 'Europe/Helsinki',
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })}
+              </p>
+            </div>
+            <div className="result-row__team result-row__team--away">
+              <span>{match.awayTeam.shortName}</span>
+              <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={24} height={24} />
+            </div>
           </div>
-        )}
+        ))}
       </div>
-    </>
 
-    <TeamFormation players={(team.squad ?? []).map(p => ({ ...p, position: p.position ?? '' }))} team={{ crest: team.crest, name: team.name }} />
-
-    {team.coach && (
       <>
-        <h2>Coach</h2>
-        <div className="coach-card">
-          <div className="coach-card__name">{team.coach.name}</div>
-          <div className="coach-card__meta">
-            <span>Nationality: {team.coach.nationality ?? 'N/A'}</span>
-            <span>Born: {team.coach.dateOfBirth ? team.coach.dateOfBirth.slice(0, 4) : 'N/A'}</span>
-          </div>
+        <h2>Scorers</h2>
+        <div className="scorers-list">
+          {scorers.length > 0 ? (
+            scorers.slice(0, 5).map((s, i) => (
+              <div key={s.player.id} className="scorer-row">
+                <span className="scorer-row__rank">{i + 1}</span>
+                <img src={s.team.crest} alt={s.team.name} width={20} height={20} />
+                <span className="scorer-row__name">{s.player.name}</span>
+                <span className="scorer-row__goals">{s.goals} ⚽</span>
+              </div>
+            ))
+          ) : (
+            <div>
+              <span className="scorer-row__none">No Scorers from this team yet</span>
+            </div>
+          )}
         </div>
       </>
-    )}
 
-    <h2>Squad</h2>
-    <div className="squad-grid">
-      {team.squad?.map(player => (
-        <div key={player.id} className="squad-card">
-          <div className="squad-card__name">{player.name}</div>
-          <div className="squad-card__meta">
-            <span>{player.position ?? 'N/A'}</span>
-            <span>{player.nationality ?? 'N/A'}</span>
-            <span>{player.dateOfBirth ? player.dateOfBirth.slice(0, 4) : 'N/A'}</span>
+      <TeamFormation players={(team.squad ?? []).map(p => ({ ...p, position: p.position ?? '' }))} team={{ crest: team.crest, name: team.name }} />
+
+      {team.coach && (
+        <>
+          <h2>Coach</h2>
+          <div className="coach-card">
+            <div className="coach-card__name">{team.coach.name}</div>
+            <div className="coach-card__meta">
+              <span>Nationality: {team.coach.nationality ?? 'N/A'}</span>
+              <span>Born: {team.coach.dateOfBirth ? team.coach.dateOfBirth.slice(0, 4) : 'N/A'}</span>
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        </>
+      )}
 
-  </div>
-)
+      <h2>Squad</h2>
+      <div className="squad-grid">
+        {team.squad?.map(player => (
+          <div key={player.id} className="squad-card">
+            <div className="squad-card__name">{player.name}</div>
+            <div className="squad-card__meta">
+              <span>{player.position ?? 'N/A'}</span>
+              <span>{player.nationality ?? 'N/A'}</span>
+              <span>{player.dateOfBirth ? player.dateOfBirth.slice(0, 4) : 'N/A'}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  )
 }

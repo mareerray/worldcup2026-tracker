@@ -21,7 +21,7 @@ export default function Results() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedMatchday, setSelectedMatchday] = useState<number | null>(3)
-  const [selectedStage, setSelectedStage] = useState<string | null>('LAST_32')
+  const [selectedStage, setSelectedStage] = useState<string | null>('LAST_16')
   const [activeTab, setActiveTab] = useState<'group' | 'knockout'>('knockout')
   const [finalsMatches, setFinalsMatches] = useState<Record<string, Match[]>>({})
   const [finalsLoaded, setFinalsLoaded] = useState(false)

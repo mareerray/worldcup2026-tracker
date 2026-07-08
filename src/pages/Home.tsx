@@ -76,7 +76,7 @@ export default function Home() {
         fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=THIRD_PLACE'),
         fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=FINAL'),
         fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?status=FINISHED&limit=6'),
-        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?status=SCHEDULED&stage=LAST_16'),
+        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?status=SCHEDULED&limit=2'),
         fetchFootballJson<{ scorers?: Scorer[] }>('/competitions/WC/scorers?season=2026&limit=10'),
         fetchFootballJson<{ resultSet?: { count: number } }>('/competitions/WC/matches'),
       ])

@@ -21,7 +21,7 @@ export default function Results() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedMatchday, setSelectedMatchday] = useState<number | null>(3)
-  const [selectedStage, setSelectedStage] = useState<string | null>('LAST_16')
+  const [selectedStage, setSelectedStage] = useState<string | null>('FINALS')
   const [activeTab, setActiveTab] = useState<'group' | 'knockout'>('knockout')
   const [finalsMatches, setFinalsMatches] = useState<Record<string, Match[]>>({})
   const [finalsLoaded, setFinalsLoaded] = useState(false)
@@ -96,7 +96,7 @@ export default function Results() {
           if (err.name === 'TimeoutError') {
             setError('Request timed out. Check your connection and try again.')
           } else if (err.message.includes('429')) {
-            setError('Too many requests — please wait a minute and refresh.') // 👈 your message, but only for rate limits
+            setError('Too many requests — please wait a minute and refresh.')
           } else {
             setError('Failed to load matches. Please try again.')
           }
@@ -122,7 +122,7 @@ export default function Results() {
           if (err.name === 'TimeoutError') {
             setError('Request timed out. Check your connection and try again.')
           } else if (err.message.includes('429')) {
-            setError('Too many requests — please wait a minute and refresh.') // 👈 your message, but only for rate limits
+            setError('Too many requests — please wait a minute and refresh.')
           } else {
             setError('Failed to load matches. Please try again.')
           }
@@ -231,30 +231,3 @@ export default function Results() {
   )
 }
 
-{/* Match list
-          {loading ? (
-            <p className="loading">Loading matches...</p>
-            ) : selectedStage === 'FINALS' ? (
-            <div className="knockout-results">
-                {FINALS_STAGES.filter(s => finalsMatches[s.key]?.length > 0).map(s => (
-                <div key={s.key} className="knockout-results__section">
-                    <h3 className="knockout-results__title">{s.label}</h3>
-                    <div className="matches-grid">
-                    {finalsMatches[s.key].map(match => <MatchCard key={match.id} match={match} />)}
-                    </div>
-                </div>
-                ))}
-                {Object.keys(finalsMatches).length === 0 && (
-                <p className="no-data">No finals results yet.</p>
-                )}
-            </div>
-            ) : matches.length === 0 ? (
-            <p className="no-data">No results yet for this stage.</p>
-            ) : (
-            <div className="matches-grid">
-                {matches.map(match => <MatchCard key={match.id} match={match} />)}
-            </div>
-            )}
-        </div>
-    )
-} */}

@@ -60,7 +60,7 @@ export default function TeamPage() {
 
         const [teamRes, matchesRes, upcomingRes, scorersRes] = await Promise.all([
           fetch(`/api/football/teams/${id}`, { headers, signal: AbortSignal.timeout(10000) }), // 10 seconds timeout
-          fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=5`, { headers, signal: AbortSignal.timeout(10000) }),
+          fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=10`, { headers, signal: AbortSignal.timeout(10000) }),
           fetch(`/api/football/teams/${id}/matches?status=SCHEDULED&limit=1`, { headers, signal: AbortSignal.timeout(10000) }),
           fetch(`/api/football/competitions/WC/scorers?limit=150`, { headers, signal: AbortSignal.timeout(10000) })
         ])

@@ -6,6 +6,32 @@ import '../styles/TeamPage.css'
 import TeamFormation from '../components/TeamFormation'
 import MatchCard from '../components/MatchCard'
 
+/** Final podium finishes — same teams as ChampionsPodium (football-data.org IDs). */
+const PODIUM_FINISHES: Record<number, { label: string; place: 1 | 2 | 3 }> = {
+  760: { label: 'Champion', place: 1 },       // Spain
+  762: { label: 'Second Place', place: 2 }, // Argentina
+  770: { label: 'Third Place', place: 3 },  // England
+}
+
+function TrophyIcon() {
+  return (
+    <svg className="badge__trophy" viewBox="0 0 64 64" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M18 8h28v6c0 8.5-5.2 15.6-12.5 18.4L32 34l-1.5-1.6C23.2 29.6 18 22.5 18 14V8z"
+      />
+      <path
+        fill="currentColor"
+        opacity="0.85"
+        d="M10 10h8v4c0 4.4-2.4 8.2-6 10.2C9.4 20.8 8 17.6 8 14v-2c0-1.1.9-2 2-2zm36 0h8c1.1 0 2 .9 2 2v2c0 3.6-1.4 6.8-3.9 9.2-3.6-2-6.1-5.8-6.1-10.2v-4z"
+      />
+      <rect x="28" y="34" width="8" height="8" rx="1" fill="currentColor" />
+      <path fill="currentColor" d="M22 48h20l-2 8H24l-2-8z" />
+      <rect x="18" y="56" width="28" height="4" rx="2" fill="currentColor" />
+    </svg>
+  )
+}
+
 function isTeamEliminated(matches: Match[], upcomingMatch: Match | null, teamId: number): boolean {
   if (upcomingMatch) return false
 
@@ -43,9 +69,10 @@ export default function TeamPage() {
   const [scorers, setScorers] = useState<Scorer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const eliminated = team ? isTeamEliminated(matches, upcomingMatch, team.id) : false
+  const podiumFinish = team ? PODIUM_FINISHES[team.id] : undefined
+  const eliminated = team && !podiumFinish ? isTeamEliminated(matches, upcomingMatch, team.id) : false
   const hasStarted = matches.some(m => m.status === 'FINISHED') || !!upcomingMatch
-  const stillIn = team ? hasStarted && !eliminated : false
+  const stillIn = team ? hasStarted && !eliminated && !podiumFinish : false
 
   useEffect(() => {
     if (!id) return
@@ -133,6 +160,12 @@ export default function TeamPage() {
             <p>{team.shortName}</p>
           </div>
         </div>
+        {podiumFinish && (
+          <span className={`badge badge--podium badge--podium-${podiumFinish.place}`}>
+            <TrophyIcon />
+            {podiumFinish.label}
+          </span>
+        )}
         {eliminated && <span className="badge badge--eliminated">Eliminated</span>}
         {stillIn && <span className="badge badge--active">Active</span>}
       </div>

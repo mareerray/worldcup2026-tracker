@@ -54,6 +54,38 @@
     /* prevents the badge from shrinking on smaller screens */
 }
 
+.badge--podium {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.badge--podium-1 {
+    color: #f5d76e;
+}
+
+.badge--podium-2 {
+    color: #c0c7d1;
+}
+
+.badge--podium-3 {
+    color: #cd7f32;
+}
+
+.badge__trophy {
+    width: 1.35rem;
+    height: 1.35rem;
+    flex-shrink: 0;
+    color: inherit;
+    filter: drop-shadow(0 0 6px rgba(245, 215, 110, 0.45));
+}
+
 .team-page__header img {
     width: 72px;
     height: 72px;

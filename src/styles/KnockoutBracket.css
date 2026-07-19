@@ -82,7 +82,6 @@
 
 .bracket-semi-anchor .bracket-card {
   width: 100%;
-  background: var(--bg-card);
 }
 
 .bracket-pair--semis > .bracket-third-place .bracket-card {

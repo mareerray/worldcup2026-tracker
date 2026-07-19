@@ -12,9 +12,9 @@ export default function Navbar() {
             <NavLink to="/results" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
                 ✅ Results
             </NavLink>
-            <NavLink to="/fixtures" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            {/* <NavLink to="/fixtures" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
                 📅 Fixtures
-            </NavLink>
+            </NavLink> */}
             <NavLink to="/about" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
                 ℹ️ About
             </NavLink>

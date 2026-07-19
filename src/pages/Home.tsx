@@ -257,10 +257,10 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="home-second">
-          <div className="home-card slide-up delay-02">
-            <h3 className="home-card__title">📅 Upcoming Matches</h3>
-            {upcomingMatches.length > 0 ? (
+        {upcomingMatches.length > 0 && (
+          <div className="home-second">
+            <div className="home-card slide-up delay-02">
+              <h3 className="home-card__title">📅 Upcoming Matches</h3>
               <div className="next-match">
                 {upcomingMatches.map((match) => (
                   <div
@@ -303,11 +303,9 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="no-data">No upcoming matches</p>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="home-card slide-up delay-1">

@@ -23,8 +23,12 @@
 
 .home-top {
     display: grid;
-    grid-template-columns: 1.5fr 1fr;
+    grid-template-columns: 1fr;
     gap: 1.25rem;
+}
+
+.home-top:has(> :nth-child(2)) {
+    grid-template-columns: 1.5fr 1fr;
 }
 
 .home-second {

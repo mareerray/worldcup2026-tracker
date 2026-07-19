@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Match, Scorer } from '../types'
 import type { AIInsight } from '../types/ai'
 import { getAIInsight } from '../services/geminiService'
@@ -7,29 +7,15 @@ import { buildMatchInsightPrompt, matchInsightCacheKey } from '../utils/matchIns
 import { SLIDES } from '../utils/slides.ts'
 import AIResultCard from '../components/ai/AIResultCard'
 import MatchInsightButton from '../components/ai/MatchInsightButton'
+import ChampionsPodium from '../components/ChampionsPodium'
 import KnockoutBracket from '../components/KnockoutBracket'
 import { formatScore } from '../utils/formatScore'
 import '../styles/Home.css'
 import '../styles/AIStyles.css'
 import '../styles/KnockoutBracket.css'
 
-const LIVE_STATUSES = new Set(['IN_PLAY', 'PAUSED', 'LIVE'])
-
-function toDateParam(date: Date) {
-  return date.toISOString().slice(0, 10)
-}
-
-function getLiveMatchDateRange() {
-  const from = new Date()
-  from.setDate(from.getDate() - 1)
-  const to = new Date()
-  to.setDate(to.getDate() + 1)
-  return { dateFrom: toDateParam(from), dateTo: toDateParam(to) }
-}
-
 export default function Home() {
   const [recentMatches, setRecentMatches] = useState<Match[]>([])
-  const [liveMatches, setLiveMatches] = useState<Match[]>([])
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([])
   const [scorers, setScorers] = useState<Scorer[]>([])
   const [loading, setLoading] = useState(true)
@@ -41,9 +27,7 @@ export default function Home() {
     thirdPlace: null as Match | null,
     final: null as Match | null,
   })
-  const [liveFeedNotice, setLiveFeedNotice] = useState<string | null>(null)
   const [dataError, setDataError] = useState<string | null>(null)
-  const liveRefreshBlockedUntilRef = useRef<number | null>(null)
 
   const [aiLoading, setAiLoading] = useState(false)
   const [aiInsight, setAiInsight] = useState<AIInsight | null>(null)
@@ -102,40 +86,6 @@ export default function Home() {
     }
   }
 
-  const syncLiveMatches = async (cancelledRef: { current: boolean }) => {
-    const blockedUntil = liveRefreshBlockedUntilRef.current
-    if (blockedUntil && Date.now() < blockedUntil) return
-
-    const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
-
-    try {
-      const { dateFrom, dateTo } = getLiveMatchDateRange()
-      const response = await fetch(`/api/football/competitions/WC/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`, { headers })
-
-      if (response.status === 429) {
-        if (!cancelledRef.current) {
-          setLiveFeedNotice('Live feed is rate-limited right now. Showing the latest cached update.')
-          liveRefreshBlockedUntilRef.current = Date.now() + 5 * 60_000
-        }
-        return
-      }
-
-      const liveData = await response.json()
-      if (cancelledRef.current) return
-
-      const matches = (liveData.matches as Match[] | undefined)?.filter((match) =>
-        LIVE_STATUSES.has(match.status)
-      ).sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime()) || []
-
-      setLiveMatches(matches)
-      setLiveFeedNotice(null)
-    } catch {
-      if (!cancelledRef.current) {
-        setLiveFeedNotice('Live feed is temporarily unavailable. Showing the latest cached update.')
-      }
-    }
-  }
-
   const handleAskAI = async (match: Match) => {
     setSelectedMatchId(match.id)
     setAiLoading(true)
@@ -159,26 +109,13 @@ export default function Home() {
 
     const refresh = async () => {
       await loadStaticHomeData(cancelledRef)
-      await syncLiveMatches(cancelledRef)
       if (!cancelledRef.current) setLoading(false)
     }
 
     refresh()
 
-    const interval = window.setInterval(() => {
-      if (!document.hidden) syncLiveMatches(cancelledRef)
-    }, 90_000)
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) syncLiveMatches(cancelledRef)
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
     return () => {
       cancelledRef.current = true
-      window.clearInterval(interval)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
 
@@ -207,54 +144,7 @@ export default function Home() {
 
       <div className="home-top">
         <div className="home-second">
-          <div className="home-card slide-up delay-02">
-            <div className="live-match-card__header">
-              <h3 className="home-card__title">🔴 Live Matches</h3>
-              <div className="live-match__pill-row">
-                <span className="live-match__pill live-match__pill--live">LIVE TRACKER</span>
-                <span className="live-match__pill live-match__pill--delay">Delayed feed</span>
-              </div>
-            </div>
-            {liveFeedNotice ? <p className="live-match__status live-match__status--notice">{liveFeedNotice}</p> : null}
-            {liveMatches.length > 0 ? (
-              <div className="live-match-list">
-                {liveMatches.map(match => (
-                  <div key={match.id} className="live-match">
-                    <p className="live-match__info">
-                      Matchday {match.matchday} ·{' '}
-                      {new Date(match.utcDate).toLocaleString('en-GB', {
-                        timeZone: 'Europe/Helsinki',
-                        weekday: 'short',
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-
-                      })}{' '}
-                      <span className="timezone-label">EEST</span>
-                    </p>
-                    <div className="next-match__teams">
-                      <div className="next-match__team">
-                        <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={24} height={24} />
-                        <span>{match.homeTeam.shortName}</span>
-                      </div>
-                      <div className="next-match__middle">
-                        <span className="live-match__score">
-                          {match.score.fullTime.home ?? 0} – {match.score.fullTime.away ?? 0}
-                        </span>
-                      </div>
-                      <div className="next-match__team">
-                        <img src={match.awayTeam.crest} alt={match.awayTeam.name} width={24} height={24} />
-                        <span>{match.awayTeam.shortName}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="no-data">No matches are live at the moment</p>
-            )}
-          </div>
+          <ChampionsPodium />
         </div>
 
         {upcomingMatches.length > 0 && (

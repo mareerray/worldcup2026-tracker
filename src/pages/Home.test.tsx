@@ -50,9 +50,12 @@ it('shows main sections', async () => {
     render(<Home />)
 
     await waitFor(() => {
-        expect(screen.getByText('🔴 Live Matches')).toBeInTheDocument()
+        expect(screen.getByText('World Cup 2026 Champions')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('📅 Upcoming Matches')).toBeInTheDocument()
+    expect(screen.getByText('Champion')).toBeInTheDocument()
+    expect(screen.getByText('Spain')).toBeInTheDocument()
+    expect(screen.getByText('Argentina')).toBeInTheDocument()
+    expect(screen.getByText('England')).toBeInTheDocument()
     expect(screen.getByText('⚽ Latest Results')).toBeInTheDocument()
 })

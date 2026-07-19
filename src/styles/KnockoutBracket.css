@@ -16,7 +16,6 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgba(97, 160, 25, 0.55) rgba(255, 255, 255, 0.06);
 }
 
 .bracket-scroll::-webkit-scrollbar {

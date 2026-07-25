@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { Component } from 'react'
 import type { ReactNode } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import Header from './components/Header'
 import Home from './pages/Home'
 import Standings from './pages/Standings'
@@ -58,6 +59,7 @@ function App() {
         </ErrorBoundary>
       </main>
       <Footer />
+      <Analytics />
     </div>
   )
 }

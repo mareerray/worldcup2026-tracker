@@ -7,6 +7,7 @@ let blockedUntil = 0
 
 function throwGeminiError(message: string, status?: number): never {
     const error = new Error(message) as GeminiError
+    error.name = 'GeminiError'
     if (status !== undefined) error.status = status
     throw error
 }

@@ -81,6 +81,25 @@ GEMINI_API_KEY=your_gemini_api_key
 
 On Vercel, set both variables in **Settings → Environment Variables**. The football proxy also accepts `API_KEY` if `VITE_API_KEY` is not set server-side.
 
+### Example `.env`
+Create a local `.env` from this example (do NOT commit your `.env`). You can also commit a trimmed `.env.example` with these keys.
+
+```env
+# Client (used by the browser via Vite)
+VITE_API_KEY=your_football_data_api_key
+
+# Server-only (preferred for production; used by the server proxy)
+API_KEY=your_football_data_api_key
+
+# Gemini (server-side key — keep secret)
+GEMINI_API_KEY=your_gemini_api_key
+
+# Optional: Vite dev plugin can also read this
+VITE_GEMINI_API_KEY=your_gemini_api_key
+```
+
+Note: `VITE_`-prefixed variables are exposed to the client by Vite — keep only non-sensitive values there. Prefer `API_KEY` and `GEMINI_API_KEY` for server-only secrets.
+
 ### Run locally
 
 ```bash
@@ -102,45 +121,72 @@ npm run build
 ## 📁 Project Structure
 
 ```
-src/
+.
+├── README.md
+├── index.html
+├── package.json
+├── tsconfig.json
+├── tsconfig.app.json
+├── tsconfig.node.json
+├── vite.config.ts
+├── vite.geminiDevPlugin.ts
+├── vitest.config.ts
+├── vercel.json
 ├── api/
-│   └── footballClient.ts       # Browser helper — calls /api/football
-├── components/
-│   ├── ai/
-│   │   ├── AIResultCard.tsx
-│   │   ├── AIFloatingButton.tsx
-│   │   └── MatchInsightButton.tsx
-│   ├── KnockoutBracket.tsx     # Knockout tree UI
-│   ├── Footer.tsx
-│   ├── GroupTable.tsx
-│   ├── Header.tsx
-│   ├── MatchCard.tsx
-│   ├── Navbar.tsx
-│   ├── SearchBar.tsx
-│   └── TeamFormation.tsx
-├── pages/
-│   ├── About.tsx
-│   ├── Fixtures.tsx
-│   ├── Home.tsx
-│   ├── Results.tsx
-│   ├── Standings.tsx
-│   └── TeamPage.tsx
-├── services/
-│   └── geminiService.ts        # Calls /api/gemini + client-side caching
-├── styles/
-│   ├── KnockoutBracket.css
-│   └── ...
-├── types/
-├── utils/
-├── App.tsx
-└── main.tsx
-
-api/
-├── football.ts                 # Vercel serverless proxy → football-data.org
-└── gemini.ts                   # Vercel serverless proxy → Google Gemini
-
-lib/
-└── geminiUpstream.ts           # Shared Gemini logic for local dev middleware
+│   ├── football.ts             # Vercel serverless proxy → football-data.org
+│   └── gemini.ts               # Vercel serverless proxy → Google Gemini
+├── lib/
+│   └── geminiUpstream.ts       # Shared Gemini logic for local dev middleware
+├── public/
+│   └── images/                 # screenshot and other assets
+└── src/
+	├── App.tsx
+	├── main.tsx
+	├── setupTests.ts
+	├── api/
+	│   └── footballClient.ts   # Browser helper — calls /api/football
+	├── assets/
+	├── components/
+	│   ├── ChampionsPodium.tsx
+	│   ├── Footer.tsx
+	│   ├── GroupTable.tsx
+	│   ├── Header.tsx
+	│   ├── KnockoutBracket.tsx
+	│   ├── MatchCard.tsx
+	│   ├── Navbar.tsx
+	│   ├── SearchBar.tsx
+	│   └── TeamFormation.tsx
+	│   └── ai/
+	│       ├── AIFloatingButton.tsx
+	│       ├── AIResultCard.tsx
+	│       └── MatchInsightButton.tsx
+	├── pages/
+	│   ├── About.tsx
+	│   ├── Fixtures.tsx
+	│   ├── Home.test.tsx
+	│   ├── Home.tsx
+	│   ├── OldHome.tsx
+	│   ├── Results.tsx
+	│   ├── Standings.tsx
+	│   └── TeamPage.tsx
+	├── services/
+	│   └── geminiService.ts     # Calls /api/gemini + client-side caching
+	├── styles/
+	│   ├── About.css
+	│   ├── AIStyles.css
+	│   ├── ChampionsPodium.css
+	│   ├── Fixtures.css
+	│   ├── Footer.css
+	│   ├── Home.css
+	│   ├── index.css
+	│   └── ...
+	├── types/
+	│   ├── ai.ts
+	│   └── index.ts
+	└── utils/
+		├── formatScore.ts
+		├── matchInsightPrompt.ts
+		└── slides.ts
 ```
 
 ## 🔑 APIs

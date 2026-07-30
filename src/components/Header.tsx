@@ -12,7 +12,7 @@ export default function Header() {
                 />
                 <div>
                     <h1>FIFA World Cup 2026 Tracker</h1>
-                    <p className="header__sub">USA · Canada · Mexico · 11 Jun – 19 Jul</p>
+                    <p className="header__sub">USA · Canada · Mexico · 11 Jun – 19 Jul 2026</p>
                 </div>
             </div>
 

@@ -78,7 +78,7 @@ export default function TeamPage() {
     if (!id) return
 
     let cancelled = false
-    const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
+    // const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
 
     const loadTeam = async () => {
       try {
@@ -86,10 +86,10 @@ export default function TeamPage() {
         setError(null) // reset error state before fetching
 
         const [teamRes, matchesRes, upcomingRes, scorersRes] = await Promise.all([
-          fetch(`/api/football/teams/${id}`, { headers, signal: AbortSignal.timeout(10000) }), // 10 seconds timeout
-          fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=10`, { headers, signal: AbortSignal.timeout(10000) }),
-          fetch(`/api/football/teams/${id}/matches?status=SCHEDULED&limit=1`, { headers, signal: AbortSignal.timeout(10000) }),
-          fetch(`/api/football/competitions/WC/scorers?limit=150`, { headers, signal: AbortSignal.timeout(10000) })
+          fetch(`/api/football/teams/${id}`, { signal: AbortSignal.timeout(10000) }), // 10 seconds timeout
+          fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=10`, { signal: AbortSignal.timeout(10000) }),
+          fetch(`/api/football/teams/${id}/matches?status=SCHEDULED&limit=1`, { signal: AbortSignal.timeout(10000) }),
+          fetch(`/api/football/competitions/WC/scorers?limit=150`, { signal: AbortSignal.timeout(10000) })
         ])
 
         // check every response before parsing

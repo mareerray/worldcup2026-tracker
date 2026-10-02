@@ -32,7 +32,7 @@ export default function Results() {
     let ignore = false // flag to detect if this effect is stale
 
     fetch(`/api/football/competitions/WC/matches?matchday=${selectedMatchday}`, {
-      headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
+      // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
       signal: AbortSignal.timeout(10000) // 10 seconds timeout
     })
       .then(res => {
@@ -71,7 +71,7 @@ export default function Results() {
       Promise.all(
         FINALS_STAGES.map(s =>
           fetch(`/api/football/competitions/WC/matches?stage=${s.key}&status=FINISHED`, {
-            headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
+            // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
             signal: AbortSignal.timeout(10000)
           })
             .then(res => {
@@ -104,7 +104,7 @@ export default function Results() {
         })
     } else {
       fetch(`/api/football/competitions/WC/matches?stage=${selectedStage}&status=FINISHED`, {
-        headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
+        // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
         signal: AbortSignal.timeout(10000)
       })
         .then(res => {

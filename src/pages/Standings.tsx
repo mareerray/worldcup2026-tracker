@@ -11,7 +11,7 @@ export default function Standings() {
         let ignore = false // flag to detect if this effect is stale
 
         fetch(`/api/football/competitions/WC/standings`, {
-            headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
+            // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
             signal: AbortSignal.timeout(10000) // 10 seconds timeout
         })
             .then(res => {

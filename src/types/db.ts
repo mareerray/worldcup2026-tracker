@@ -15,3 +15,31 @@ export type GroupStandingRow = {
     goals_against: number
     goal_difference: number
 }
+
+export type MatchDetailRow = {
+    id: number;
+    utc_date: string;
+    status: string;
+    stage: string;
+    group_name: string | null;
+    matchday: number | null;
+    venue: string | null;
+    duration: string | null;
+    home_team_id: number | null;
+    home_name: string | null;
+    home_short_name: string | null;
+    home_tla: string | null;
+    home_crest: string | null;
+    away_team_id: number | null;
+    away_name: string | null;
+    away_short_name: string | null;
+    away_tla: string | null;
+    away_crest: string | null;
+    home_goals_full: number | null;
+    away_goals_full: number | null;
+    home_goals_regular: number | null;
+    away_goals_regular: number | null;
+    home_pens: number | null;
+    away_pens: number | null;
+    winner_team_id: number | null;
+};

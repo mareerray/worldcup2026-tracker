@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Match } from '../types'
 import MatchCard from '../components/MatchCard'
+import { getMatches } from '../lib/matches'
 import '../styles/Results.css'
 
 const KNOCKOUT_STAGES = [
@@ -28,109 +29,178 @@ export default function Results() {
 
   // Fetch GROUP stage matches by matchday
   useEffect(() => {
-    if (activeTab !== 'group' || selectedMatchday === null) return // wait for matchday to be known
-    let ignore = false // flag to detect if this effect is stale
+    if (activeTab !== 'group' || selectedMatchday === null) return
+    let ignore = false
 
-    fetch(`/api/football/competitions/WC/matches?matchday=${selectedMatchday}`, {
-      // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
-      signal: AbortSignal.timeout(10000) // 10 seconds timeout
-    })
-      .then(res => {
-        if (!res.ok) throw new Error(`Server error: ${res.status}`) // catch bad HTTP responses
-        return res.json()
-      })
-      .then(json => {
-        if (ignore) return // if this effect is stale, do nothing
-        setMatches(json.matches ?? [])
+    getMatches('GROUP_STAGE', selectedMatchday)
+      .then(rows => {
+        if (ignore) return
+        setMatches(rows)
         setLoading(false)
       })
       .catch(err => {
         if (ignore) return
         console.error('Error fetching matches:', err)
-        if (err.name === 'TimeoutError') {
-          setError('Request timed out. Check your connection and try again.')
-        } else if (err.message.includes('429')) {
-          setError('Too many requests — please wait a minute and refresh.') // 👈 your message, but only for rate limits
-        } else {
-          setError('Failed to load matches. Please try again.')
-        }
+        setError('Failed to load matches. Please try again.')
         setLoading(false)
       })
-    return () => { ignore = true } // cleanup function to mark this effect as stale
+    return () => { ignore = true }
   }, [activeTab, selectedMatchday])
 
-  // Fetch KNOCKOUT stage matches by stage
+    // Fetch KNOCKOUT stage matches by stage
   useEffect(() => {
     if (activeTab !== 'knockout' || selectedStage === null) return
+    let ignore = false
 
-    let ignore = false // flag to detect if this effect is stale
+    const finished = (rows: Match[]) => rows.filter(m => m.status === 'FINISHED')
 
     if (selectedStage === 'FINALS') {
       if (finalsLoaded) return
 
       Promise.all(
         FINALS_STAGES.map(s =>
-          fetch(`/api/football/competitions/WC/matches?stage=${s.key}&status=FINISHED`, {
-            // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
-            signal: AbortSignal.timeout(10000)
-          })
-            .then(res => {
-              if (!res.ok) throw new Error(`Server error: ${res.status}`)
-              return res.json()
-            })
-            .then(json => ({ ...s, matches: json.matches ?? [] }))
+          getMatches(s.key).then(rows => ({ key: s.key, matches: finished(rows) }))
         )
-      ).then(results => {
-        const grouped: Record<string, Match[]> = {}
-        results.forEach(({ key, matches }) => {
-          if (matches.length > 0) grouped[key] = matches
+      )
+        .then(results => {
+          if (ignore) return
+          const grouped: Record<string, Match[]> = {}
+          results.forEach(({ key, matches }) => {
+            if (matches.length > 0) grouped[key] = matches
+          })
+          setFinalsMatches(grouped)
+          setFinalsLoaded(true)
+          setLoading(false)
         })
-        if (ignore) return
-        setFinalsMatches(grouped)
-        setFinalsLoaded(true)
-        setLoading(false)
-      })
         .catch(err => {
           if (ignore) return
           console.error('Error fetching matches:', err)
-          if (err.name === 'TimeoutError') {
-            setError('Request timed out. Check your connection and try again.')
-          } else if (err.message.includes('429')) {
-            setError('Too many requests — please wait a minute and refresh.')
-          } else {
-            setError('Failed to load matches. Please try again.')
-          }
+          setError('Failed to load matches. Please try again.')
           setLoading(false)
         })
     } else {
-      fetch(`/api/football/competitions/WC/matches?stage=${selectedStage}&status=FINISHED`, {
-        // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
-        signal: AbortSignal.timeout(10000)
-      })
-        .then(res => {
-          if (!res.ok) throw new Error(`Server error: ${res.status}`)
-          return res.json()
-        })
-        .then(json => {
+      getMatches(selectedStage)
+        .then(rows => {
           if (ignore) return
-          setMatches(json.matches ?? [])
+          setMatches(finished(rows))
           setLoading(false)
         })
         .catch(err => {
           if (ignore) return
           console.error('Error fetching matches:', err)
-          if (err.name === 'TimeoutError') {
-            setError('Request timed out. Check your connection and try again.')
-          } else if (err.message.includes('429')) {
-            setError('Too many requests — please wait a minute and refresh.')
-          } else {
-            setError('Failed to load matches. Please try again.')
-          }
+          setError('Failed to load matches. Please try again.')
           setLoading(false)
         })
     }
-    return () => { ignore = true } // cleanup function to mark this effect as stale
+    return () => { ignore = true }
   }, [activeTab, selectedStage, finalsLoaded])
+
+  
+  // Fetch GROUP stage matches by matchday
+  // useEffect(() => {
+  //   if (activeTab !== 'group' || selectedMatchday === null) return // wait for matchday to be known
+  //   let ignore = false // flag to detect if this effect is stale
+
+  //   fetch(`/api/football/competitions/WC/matches?matchday=${selectedMatchday}`, {
+  //     // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
+  //     signal: AbortSignal.timeout(10000) // 10 seconds timeout
+  //   })
+  //     .then(res => {
+  //       if (!res.ok) throw new Error(`Server error: ${res.status}`) // catch bad HTTP responses
+  //       return res.json()
+  //     })
+  //     .then(json => {
+  //       if (ignore) return // if this effect is stale, do nothing
+  //       setMatches(json.matches ?? [])
+  //       setLoading(false)
+  //     })
+  //     .catch(err => {
+  //       if (ignore) return
+  //       console.error('Error fetching matches:', err)
+  //       if (err.name === 'TimeoutError') {
+  //         setError('Request timed out. Check your connection and try again.')
+  //       } else if (err.message.includes('429')) {
+  //         setError('Too many requests — please wait a minute and refresh.') // 👈 your message, but only for rate limits
+  //       } else {
+  //         setError('Failed to load matches. Please try again.')
+  //       }
+  //       setLoading(false)
+  //     })
+  //   return () => { ignore = true } // cleanup function to mark this effect as stale
+  // }, [activeTab, selectedMatchday])
+
+  // // Fetch KNOCKOUT stage matches by stage
+  // useEffect(() => {
+  //   if (activeTab !== 'knockout' || selectedStage === null) return
+
+  //   let ignore = false // flag to detect if this effect is stale
+
+  //   if (selectedStage === 'FINALS') {
+  //     if (finalsLoaded) return
+
+  //     Promise.all(
+  //       FINALS_STAGES.map(s =>
+  //         fetch(`/api/football/competitions/WC/matches?stage=${s.key}&status=FINISHED`, {
+  //           // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
+  //           signal: AbortSignal.timeout(10000)
+  //         })
+  //           .then(res => {
+  //             if (!res.ok) throw new Error(`Server error: ${res.status}`)
+  //             return res.json()
+  //           })
+  //           .then(json => ({ ...s, matches: json.matches ?? [] }))
+  //       )
+  //     ).then(results => {
+  //       const grouped: Record<string, Match[]> = {}
+  //       results.forEach(({ key, matches }) => {
+  //         if (matches.length > 0) grouped[key] = matches
+  //       })
+  //       if (ignore) return
+  //       setFinalsMatches(grouped)
+  //       setFinalsLoaded(true)
+  //       setLoading(false)
+  //     })
+  //       .catch(err => {
+  //         if (ignore) return
+  //         console.error('Error fetching matches:', err)
+  //         if (err.name === 'TimeoutError') {
+  //           setError('Request timed out. Check your connection and try again.')
+  //         } else if (err.message.includes('429')) {
+  //           setError('Too many requests — please wait a minute and refresh.')
+  //         } else {
+  //           setError('Failed to load matches. Please try again.')
+  //         }
+  //         setLoading(false)
+  //       })
+  //   } else {
+  //     fetch(`/api/football/competitions/WC/matches?stage=${selectedStage}&status=FINISHED`, {
+  //       // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
+  //       signal: AbortSignal.timeout(10000)
+  //     })
+  //       .then(res => {
+  //         if (!res.ok) throw new Error(`Server error: ${res.status}`)
+  //         return res.json()
+  //       })
+  //       .then(json => {
+  //         if (ignore) return
+  //         setMatches(json.matches ?? [])
+  //         setLoading(false)
+  //       })
+  //       .catch(err => {
+  //         if (ignore) return
+  //         console.error('Error fetching matches:', err)
+  //         if (err.name === 'TimeoutError') {
+  //           setError('Request timed out. Check your connection and try again.')
+  //         } else if (err.message.includes('429')) {
+  //           setError('Too many requests — please wait a minute and refresh.')
+  //         } else {
+  //           setError('Failed to load matches. Please try again.')
+  //         }
+  //         setLoading(false)
+  //       })
+  //   }
+  //   return () => { ignore = true } // cleanup function to mark this effect as stale
+  // }, [activeTab, selectedStage, finalsLoaded])
 
   function handleTabSwitch(tab: 'group' | 'knockout') {
     setActiveTab(tab)

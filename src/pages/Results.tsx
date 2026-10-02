@@ -95,116 +95,14 @@ export default function Results() {
     return () => { ignore = true }
   }, [activeTab, selectedStage, finalsLoaded])
 
-  
-  // Fetch GROUP stage matches by matchday
-  // useEffect(() => {
-  //   if (activeTab !== 'group' || selectedMatchday === null) return // wait for matchday to be known
-  //   let ignore = false // flag to detect if this effect is stale
-
-  //   fetch(`/api/football/competitions/WC/matches?matchday=${selectedMatchday}`, {
-  //     // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
-  //     signal: AbortSignal.timeout(10000) // 10 seconds timeout
-  //   })
-  //     .then(res => {
-  //       if (!res.ok) throw new Error(`Server error: ${res.status}`) // catch bad HTTP responses
-  //       return res.json()
-  //     })
-  //     .then(json => {
-  //       if (ignore) return // if this effect is stale, do nothing
-  //       setMatches(json.matches ?? [])
-  //       setLoading(false)
-  //     })
-  //     .catch(err => {
-  //       if (ignore) return
-  //       console.error('Error fetching matches:', err)
-  //       if (err.name === 'TimeoutError') {
-  //         setError('Request timed out. Check your connection and try again.')
-  //       } else if (err.message.includes('429')) {
-  //         setError('Too many requests — please wait a minute and refresh.') // 👈 your message, but only for rate limits
-  //       } else {
-  //         setError('Failed to load matches. Please try again.')
-  //       }
-  //       setLoading(false)
-  //     })
-  //   return () => { ignore = true } // cleanup function to mark this effect as stale
-  // }, [activeTab, selectedMatchday])
-
-  // // Fetch KNOCKOUT stage matches by stage
-  // useEffect(() => {
-  //   if (activeTab !== 'knockout' || selectedStage === null) return
-
-  //   let ignore = false // flag to detect if this effect is stale
-
-  //   if (selectedStage === 'FINALS') {
-  //     if (finalsLoaded) return
-
-  //     Promise.all(
-  //       FINALS_STAGES.map(s =>
-  //         fetch(`/api/football/competitions/WC/matches?stage=${s.key}&status=FINISHED`, {
-  //           // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
-  //           signal: AbortSignal.timeout(10000)
-  //         })
-  //           .then(res => {
-  //             if (!res.ok) throw new Error(`Server error: ${res.status}`)
-  //             return res.json()
-  //           })
-  //           .then(json => ({ ...s, matches: json.matches ?? [] }))
-  //       )
-  //     ).then(results => {
-  //       const grouped: Record<string, Match[]> = {}
-  //       results.forEach(({ key, matches }) => {
-  //         if (matches.length > 0) grouped[key] = matches
-  //       })
-  //       if (ignore) return
-  //       setFinalsMatches(grouped)
-  //       setFinalsLoaded(true)
-  //       setLoading(false)
-  //     })
-  //       .catch(err => {
-  //         if (ignore) return
-  //         console.error('Error fetching matches:', err)
-  //         if (err.name === 'TimeoutError') {
-  //           setError('Request timed out. Check your connection and try again.')
-  //         } else if (err.message.includes('429')) {
-  //           setError('Too many requests — please wait a minute and refresh.')
-  //         } else {
-  //           setError('Failed to load matches. Please try again.')
-  //         }
-  //         setLoading(false)
-  //       })
-  //   } else {
-  //     fetch(`/api/football/competitions/WC/matches?stage=${selectedStage}&status=FINISHED`, {
-  //       // headers: { 'X-Auth-Token': import.meta.env.VITE_API_KEY },
-  //       signal: AbortSignal.timeout(10000)
-  //     })
-  //       .then(res => {
-  //         if (!res.ok) throw new Error(`Server error: ${res.status}`)
-  //         return res.json()
-  //       })
-  //       .then(json => {
-  //         if (ignore) return
-  //         setMatches(json.matches ?? [])
-  //         setLoading(false)
-  //       })
-  //       .catch(err => {
-  //         if (ignore) return
-  //         console.error('Error fetching matches:', err)
-  //         if (err.name === 'TimeoutError') {
-  //           setError('Request timed out. Check your connection and try again.')
-  //         } else if (err.message.includes('429')) {
-  //           setError('Too many requests — please wait a minute and refresh.')
-  //         } else {
-  //           setError('Failed to load matches. Please try again.')
-  //         }
-  //         setLoading(false)
-  //       })
-  //   }
-  //   return () => { ignore = true } // cleanup function to mark this effect as stale
-  // }, [activeTab, selectedStage, finalsLoaded])
 
   function handleTabSwitch(tab: 'group' | 'knockout') {
-    setActiveTab(tab)
+    if (tab === activeTab) return
     setError(null)
+    setMatches([])
+    const finalsCached = selectedStage === 'FINALS' && finalsLoaded
+    setLoading(tab === 'group' || !finalsCached)
+    setActiveTab(tab)
     if (tab === 'knockout' && selectedStage === null) {
       setSelectedStage('LAST_32')
     }
@@ -276,7 +174,7 @@ export default function Results() {
         <div className="error-message">
           <p>⚠️ {error}</p>
         </div>
-      ) : selectedStage === 'FINALS' ? (
+      ) : activeTab === 'knockout' && selectedStage === 'FINALS' ? (
         <div className="knockout-results">
           {FINALS_STAGES.filter(s => finalsMatches[s.key]?.length > 0).map(s => (
             <div key={s.key} className="knockout-results__section">

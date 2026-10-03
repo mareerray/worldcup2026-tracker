@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type { Match, Scorer } from '../types'
 import type { AIInsight } from '../types/ai'
 import { getAIInsight } from '../services/geminiService'
-import { fetchFootballJson, FootballApiError } from '../api/footballClient.ts'
 import { buildMatchInsightPrompt, matchInsightCacheKey } from '../utils/matchInsightPrompt'
 import { SLIDES } from '../utils/slides.ts'
 import AIResultCard from '../components/ai/AIResultCard'
@@ -10,6 +9,7 @@ import MatchInsightButton from '../components/ai/MatchInsightButton'
 import ChampionsPodium from '../components/ChampionsPodium'
 import KnockoutBracket from '../components/KnockoutBracket'
 import { formatScore } from '../utils/formatScore'
+import { getMatches, getRecentFinished, getUpcoming, getTopScorers } from '../lib/matches'
 import '../styles/Home.css'
 import '../styles/AIStyles.css'
 import '../styles/KnockoutBracket.css'
@@ -41,47 +41,55 @@ export default function Home() {
     try {
       const sortByDate = (matches: Match[]) =>
         [...matches].sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
-
       const [
-        round32Data,
-        round16Data,
-        quarterFinalsData,
-        semiFinalsData,
-        thirdPlaceData,
-        finalData,
-        finishedData,
-        scheduledData,
-        scorersData,
+        round32,
+        round16,
+        quarterFinals,
+        semiFinals,
+        thirdPlace,
+        final,
+        recent,
+        upcoming,
+        scorerRows,
       ] = await Promise.all([
-        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=LAST_32'),
-        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=LAST_16'),
-        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=QUARTER_FINALS'),
-        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=SEMI_FINALS'),
-        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=THIRD_PLACE'),
-        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?stage=FINAL'),
-        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?status=FINISHED&limit=6'),
-        fetchFootballJson<{ matches?: Match[] }>('/competitions/WC/matches?status=SCHEDULED&limit=2'),
-        fetchFootballJson<{ scorers?: Scorer[] }>('/competitions/WC/scorers?season=2026&limit=10'),
-        fetchFootballJson<{ resultSet?: { count: number } }>('/competitions/WC/matches'),
+        getMatches('LAST_32'),
+        getMatches('LAST_16'),
+        getMatches('QUARTER_FINALS'),
+        getMatches('SEMI_FINALS'),
+        getMatches('THIRD_PLACE'),
+        getMatches('FINAL'),
+        getRecentFinished(6),
+        getUpcoming(2),
+        getTopScorers(10),
       ])
 
       if (cancelledRef.current) return
 
       setDataError(null)
       setKnockoutRounds({
-        round32: sortByDate(round32Data.matches || []),
-        round16: sortByDate(round16Data.matches || []),
-        quarterFinals: sortByDate(quarterFinalsData.matches || []),
-        semiFinals: sortByDate(semiFinalsData.matches || []),
-        thirdPlace: sortByDate(thirdPlaceData.matches || [])[0] ?? null,
-        final: sortByDate(finalData.matches || [])[0] ?? null,
+        round32: sortByDate(round32),
+        round16: sortByDate(round16),
+        quarterFinals: sortByDate(quarterFinals),
+        semiFinals: sortByDate(semiFinals),
+        thirdPlace: sortByDate(thirdPlace)[0] ?? null,
+        final: sortByDate(final)[0] ?? null,
       })
-      setRecentMatches(finishedData.matches?.slice(-6).reverse() || [])
-      setUpcomingMatches(scheduledData.matches?.slice(0, 2) || [])
-      setScorers(scorersData.scorers || [])
-    } catch (error) {
+      setRecentMatches(recent)
+      setUpcomingMatches(upcoming)
+      setScorers(scorerRows.map(s => ({
+        player: { id: s.player_id, name: s.player_name },
+        team: {
+          id: s.team_id,
+          name: s.team_name ?? '',
+          shortName: s.team_short_name ?? '',
+          tla: s.team_tla ?? '',
+          crest: s.team_crest ?? '',
+        },
+        goals: s.goals,
+      })))
+    } catch {
       if (cancelledRef.current) return
-      const message = error instanceof FootballApiError ? error.message : 'Could not load tournament data. Please try again later.'
+      const message = 'Could not load tournament data. Please try again later.'
       setDataError(message)
     }
   }

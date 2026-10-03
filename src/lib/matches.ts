@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { MatchDetailRow } from '../types/db';
+import type { MatchDetailRow, ScorerDetailRow } from '../types/db';
 import type { Match } from '../types';
 
 export async function getMatchDetails(
@@ -65,4 +65,43 @@ export function toMatch(r: MatchDetailRow): Match {
 export async function getMatches(stage: string, matchday?: number): Promise<Match[]> {
     const rows = await getMatchDetails(stage, matchday);
     return rows.map(toMatch);
+}
+
+export async function getRecentFinished(limit = 6): Promise<Match[]> {
+    const { data, error } = await supabase
+        .from('match_details')
+        .select('*')
+        .eq('status', 'FINISHED')
+        .order('utc_date', { ascending: false })
+        .limit(limit)
+
+    if (error) throw error
+
+    return (data ?? []).map(row => toMatch(row as MatchDetailRow))
+}
+
+export async function getUpcoming(limit = 2): Promise<Match[]> {
+    const { data, error } = await supabase
+        .from('match_details')
+        .select('*')
+        .in('status', ['SCHEDULED', 'TIMED'])
+        .order('utc_date', { ascending: true })
+        .limit(limit)
+
+    if (error) throw error
+
+    return (data ?? []).map(row => toMatch(row as MatchDetailRow))
+}
+
+export async function getTopScorers(limit = 10): Promise<ScorerDetailRow[]> {
+    const { data, error } = await supabase
+        .from('scorer_details')
+        .select('*')
+        .order('goals', { ascending: false })
+        .order('player_name', { ascending: true })
+        .limit(limit)
+
+    if (error) throw error
+
+    return (data ?? []) as ScorerDetailRow[]
 }

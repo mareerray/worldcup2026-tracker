@@ -43,3 +43,14 @@ export type MatchDetailRow = {
     away_pens: number | null;
     winner_team_id: number | null;
 };
+
+export type ScorerDetailRow = {
+    player_id: number;
+    player_name: string;
+    team_id: number;
+    goals: number;
+    team_name: string | null;
+    team_short_name: string | null;
+    team_tla: string | null;
+    team_crest: string | null;
+};

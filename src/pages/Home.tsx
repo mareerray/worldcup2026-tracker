@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { Match, Scorer } from '../types'
-import type { AIInsight } from '../types/ai'
-import { getAIInsight } from '../services/geminiService'
-import { buildMatchInsightPrompt, matchInsightCacheKey } from '../utils/matchInsightPrompt'
 import { SLIDES } from '../utils/slides.ts'
-import AIResultCard from '../components/ai/AIResultCard'
-import MatchInsightButton from '../components/ai/MatchInsightButton'
 import ChampionsPodium from '../components/ChampionsPodium'
 import KnockoutBracket from '../components/KnockoutBracket'
 import { formatScore } from '../utils/formatScore'
 import { getMatches, getRecentFinished, getUpcoming, getTopScorers } from '../lib/matches'
 import '../styles/Home.css'
-import '../styles/AIStyles.css'
 import '../styles/KnockoutBracket.css'
 
 export default function Home() {
@@ -28,12 +22,6 @@ export default function Home() {
     final: null as Match | null,
   })
   const [dataError, setDataError] = useState<string | null>(null)
-
-  const [aiLoading, setAiLoading] = useState(false)
-  const [aiInsight, setAiInsight] = useState<AIInsight | null>(null)
-  const [aiError, setAiError] = useState<string | null>(null)
-  const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)
-
   const [slideIndex, setSlideIndex] = useState(0)
   const [slideVisible, setSlideVisible] = useState(true)
 
@@ -94,24 +82,6 @@ export default function Home() {
     }
   }
 
-  const handleAskAI = async (match: Match) => {
-    setSelectedMatchId(match.id)
-    setAiLoading(true)
-    setAiInsight(null)
-    setAiError(null)
-
-    try {
-      const data = await getAIInsight(buildMatchInsightPrompt(match), matchInsightCacheKey(match))
-      setAiInsight(data)
-    } catch (error: unknown) {
-      const previewError = error as { status?: number; message?: string } | null
-      const errorMessage = previewError?.message?.trim() || 'Match insight failed. Please try again.'
-      setAiError(errorMessage)
-    } finally {
-      setAiLoading(false)
-    }
-  }
-
   useEffect(() => {
     const cancelledRef = { current: false }
 
@@ -163,8 +133,7 @@ export default function Home() {
                 {upcomingMatches.map((match) => (
                   <div
                     key={match.id}
-                    className={`next-match__item ${match.id === selectedMatchId ? 'next-match__item--active' : ''}`}
-                  >
+                    className="next-match__item">
                     <div className="next-match__teams">
                       <div className="next-match__team">
                         <img src={match.homeTeam.crest} alt={match.homeTeam.name} width={24} height={24} />
@@ -193,11 +162,6 @@ export default function Home() {
                       })}
                       <span className="timezone-label">EEST</span>
                     </p>
-                    <MatchInsightButton
-                      loading={aiLoading && selectedMatchId === match.id}
-                      disabled={aiLoading}
-                      onClick={() => handleAskAI(match)}
-                    />
                   </div>
                 ))}
               </div>
@@ -290,23 +254,9 @@ export default function Home() {
                 </div>
               </div>
             )
-          })}        
+          })}
         </div>
       </div>
-
-      {aiInsight || aiLoading || aiError ? (
-        <AIResultCard
-          insight={aiInsight}
-          loading={aiLoading}
-          error={aiError}
-          onClose={() => {
-            setAiInsight(null)
-            setAiError(null)
-            setAiLoading(false)
-            setSelectedMatchId(null)
-          }}
-        />
-      ) : null}
     </div>
   )
 }

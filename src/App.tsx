@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Standings from './pages/Standings'
 import Results from './pages/Results'
 import Fixtures from './pages/Fixtures'
+import AnalyticsPage from './pages/Analytics'
 import About from './pages/About'
 import Footer from './components/Footer'
 import TeamPage from './pages/TeamPage'
@@ -25,7 +26,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     return { hasError: true }
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) { 
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info)
   }
 
@@ -55,6 +56,7 @@ function App() {
             <Route path="/fixtures" element={<Fixtures />} />
             <Route path="/about" element={<About />} />
             <Route path="/team/:id" element={<TeamPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
           </Routes>
         </ErrorBoundary>
       </main>

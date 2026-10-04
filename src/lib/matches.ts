@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import type { MatchDetailRow, ScorerDetailRow } from '../types/db';
-import type { Match } from '../types';
+import type { Match, Team } from '../types';
 
 export async function getMatchDetails(
     stage: string,
@@ -104,4 +104,69 @@ export async function getTopScorers(limit = 10): Promise<ScorerDetailRow[]> {
     if (error) throw error
 
     return (data ?? []) as ScorerDetailRow[]
+}
+
+export async function getTeamFinishedMatches(
+    teamId: number,
+    limit = 10
+): Promise<Match[]> {
+    const { data, error } = await supabase
+        .from('match_details')
+        .select('*')
+        .eq('status', 'FINISHED')
+        .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
+        .order('utc_date', { ascending: false })
+        .limit(limit)
+
+    if (error) throw error
+
+    return (data ?? []).map(row => toMatch(row as MatchDetailRow))
+}
+
+export async function getTeamUpcomingMatch(
+    teamId: number
+): Promise<Match | null> {
+    const { data, error } = await supabase
+        .from('match_details')
+        .select('*')
+        .in('status', ['SCHEDULED', 'TIMED'])
+        .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
+        .order('utc_date', { ascending: true })
+        .limit(1)
+
+    if (error) throw error
+
+    const row = data?.[0]
+    return row ? toMatch(row as MatchDetailRow) : null
+}
+
+export async function getTeamScorers(teamId: number): Promise<ScorerDetailRow[]> {
+    const { data, error } = await supabase
+        .from('scorer_details')
+        .select('*')
+        .eq('team_id', teamId)
+        .order('goals', { ascending: false })
+        .order('player_name', { ascending: true })
+
+    if (error) throw error
+
+    return (data ?? []) as ScorerDetailRow[]
+}
+
+export async function getTeam(teamId: number): Promise<Team> {
+    const { data, error } = await supabase
+        .from('teams')
+        .select('id, name, short_name, tla, crest_url')
+        .eq('id', teamId)
+        .single()
+
+    if (error) throw error
+
+    return {
+        id: data.id,
+        name: data.name,
+        shortName: data.short_name ?? '',
+        tla: data.tla ?? '',
+        crest: data.crest_url ?? '',
+    }
 }

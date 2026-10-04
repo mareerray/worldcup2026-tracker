@@ -3,8 +3,13 @@ import { useParams } from 'react-router-dom'
 import type { Match, Team, Scorer } from '../types'
 import { formatScore } from '../utils/formatScore'
 import '../styles/TeamPage.css'
-import TeamFormation from '../components/TeamFormation'
 import MatchCard from '../components/MatchCard'
+import {
+  getTeam,
+  getTeamFinishedMatches,
+  getTeamUpcomingMatch,
+  getTeamScorers,
+} from '../lib/matches'
 
 /** Final podium finishes — same teams as ChampionsPodium (football-data.org IDs). */
 const PODIUM_FINISHES: Record<number, { label: string; place: 1 | 2 | 3 }> = {
@@ -78,41 +83,39 @@ export default function TeamPage() {
     if (!id) return
 
     let cancelled = false
-    // const headers = { 'X-Auth-Token': import.meta.env.VITE_API_KEY }
 
     const loadTeam = async () => {
       try {
         setLoading(true)
         setError(null) // reset error state before fetching
 
-        const [teamRes, matchesRes, upcomingRes, scorersRes] = await Promise.all([
-          fetch(`/api/football/teams/${id}`, { signal: AbortSignal.timeout(10000) }), // 10 seconds timeout
-          fetch(`/api/football/teams/${id}/matches?status=FINISHED&limit=10`, { signal: AbortSignal.timeout(10000) }),
-          fetch(`/api/football/teams/${id}/matches?status=SCHEDULED&limit=1`, { signal: AbortSignal.timeout(10000) }),
-          fetch(`/api/football/competitions/WC/scorers?limit=150`, { signal: AbortSignal.timeout(10000) })
-        ])
+        const teamId = Number(id)
 
-        // check every response before parsing
-        for (const res of [teamRes, matchesRes, upcomingRes, scorersRes]) {
-          if (!res.ok) throw new Error(`Server error: ${res.status}`)
-        }
-
-        const [teamData, matchesData, upcomingMatchesData, scorersData] = await Promise.all([
-          teamRes.json(),
-          matchesRes.json(),
-          upcomingRes.json(),
-          scorersRes.json()
+        const [teamData, teamMatches, nextMatch, scorerRows] = await Promise.all([
+          getTeam(teamId),
+          getTeamFinishedMatches(teamId, 10),
+          getTeamUpcomingMatch(teamId),
+          getTeamScorers(teamId),
         ])
 
         if (cancelled) return
 
         setTeam(teamData)
-        const sortedMatches = [...(matchesData.matches || [])].sort(
-          (a, b) => new Date(b.utcDate).getTime() - new Date(a.utcDate).getTime()
+        setMatches(teamMatches)
+        setUpcomingMatches(nextMatch)
+        setScorers(
+          scorerRows.map(s => ({
+            player: { id: s.player_id, name: s.player_name },
+            team: {
+              id: s.team_id,
+              name: s.team_name ?? '',
+              shortName: s.team_short_name ?? '',
+              tla: s.team_tla ?? '',
+              crest: s.team_crest ?? '',
+            },
+            goals: s.goals,
+          }))
         )
-        setMatches(sortedMatches)
-        setUpcomingMatches(upcomingMatchesData.matches?.[0] ?? null)
-        setScorers((scorersData.scorers || []).filter((s: Scorer) => s.team.id === teamData.id))
       } catch (err: unknown) {
         if (cancelled) return
         console.error('Error fetching team:', err)
@@ -121,22 +124,14 @@ export default function TeamPage() {
         setUpcomingMatches(null)
         setScorers([])
 
-        if (err instanceof Error) {
-          if (err.name === 'TimeoutError') {
-            setError('Request timed out. Check your connection and try again.')
-          } else if (err.message.includes('429')) {
-            setError('Too many requests — please wait a minute and refresh.')
-          } else if (err.message.includes('404')) {
-            setError('Team not found.')
-          } else {
-            setError('Failed to load team data. Please try again.')
-          }
+        if (err instanceof Error && err.message.includes('PGRST116')) {
+          setError('Team not found.')
         } else {
           setError('Failed to load team data. Please try again.')
         }
       } finally {
         if (!cancelled) setLoading(false)
-      }
+      }    
     }
 
     loadTeam()
@@ -231,6 +226,14 @@ export default function TeamPage() {
           )}
         </div>
       </>
+    </div>
+  )
+}
+
+
+/*
+// Team Formation and Squad Section (for future implementation)
+import TeamFormation from '../components/TeamFormation'
 
       <TeamFormation players={(team.squad ?? []).map(p => ({ ...p, position: p.position ?? '' }))} team={{ crest: team.crest, name: team.name }} />
 
@@ -260,7 +263,4 @@ export default function TeamPage() {
           </div>
         ))}
       </div>
-
-    </div>
-  )
-}
+*/

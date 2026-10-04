@@ -1,59 +1,92 @@
 # ⚽ FIFA World Cup 2026 Tracker
 
-A real-time World Cup 2026 dashboard built with React, TypeScript and Vite.
-Live data powered by the [football-data.org](https://www.football-data.org) API, with optional **AI match insights** powered by Google Gemini.
+A World Cup 2026 tournament dashboard built with React, TypeScript and Vite.
+
+Match, team and scorer data is stored in **Supabase Postgres** and read through SQL views. The app also uses the [football-data.org](https://www.football-data.org) API for pages that have not yet been migrated to Supabase.
 
 ## 🚀 Live Demo
+
 [worldcup2026-tracker-app.vercel.app](https://worldcup2026-tracker-app.vercel.app)
 
 <div>
-<img src="public/images/screenshot.png" width="700">
+  <img src="public/images/screenshot_1.png" width="700" alt="FIFA World Cup 2026 Tracker screenshot">
 </div>
 
 ## ✨ Features
 
 ### 🏠 Home Dashboard
-- 🔴 **Live Matches** — in-play fixtures with scores (auto-refreshes every 90s)
-- 📅 **Upcoming Matches** — next fixtures with date, time and timezone (EEST)
-- 🤖 **AI Match Insight** — generate a short AI preview for upcoming fixtures (title, summary, key factor)
-- 🏆 **Knockout Bracket** — full tournament tree from Round of 32 through the Final, with the match for third place between the semi-finals
-- 🥅 **Top Scorers** — goal scorer rankings for WC 2026
-- ⚽ **Latest Results** — most recent match scores at a glance
-- 📸 **Image Carousel** — WC 2026 venues and highlights
 
-### 🤖 AI Match Insight
-- Click **Match insight** on an upcoming fixture to get a Gemini-generated preview
-- Results appear in a floating insight card with an **AI** badge and disclaimer
-- Responses are cached per match so repeat clicks do not call the API again
-- Built with `gemini-2.5-flash` and structured JSON output (`title`, `summary`, `keyFactor`)
-- API key is kept server-side via `api/gemini.ts` (not exposed in the browser)
+- 🏆 **Knockout Bracket** — full tournament tree from the Round of 32 to the Final, including the third-place match
+- 🥅 **Top Scorers** — top 10 scorer rankings with team crests and names
+- ⚽ **Latest Results** — the six most recent completed matches
+- 📸 **Image Carousel** — World Cup 2026 venues and highlights
 
 ### 📄 Pages
-- 🏆 **Standings** — full group tables for all 12 groups with P, W, D, L, GD and PTS
-- 🕐 **Results** — all match scores filterable by matchday
-- 🗓️ **Fixtures** — upcoming matches with date, time and venue
-- 🔍 **Team Search** — search any of the 48 teams and view their details
-- 🌍 **About** — tournament info, fun facts and external resources
+
+- 🏆 **Standings** — group tables for all 12 groups with P, W, D, L, GD and PTS
+- 🕐 **Results** — group-stage results by matchday and every knockout stage
+- 🗓️ **Fixtures** — fixture list with date, time and venue
+- 🔍 **Team Search** — search all 48 teams and view their tournament results, next match, scorers and status badge
+- 🌍 **About** — tournament information, fun facts and external resources
+
+### ⚽ Score handling
+
+- Penalty shootout goals are separated from the in-play score.
+- For example, a game stored as `4–5` after a `1–1` draw and a shootout is displayed as `1–1 (3–4 pens)`.
+- Extra-time goals remain part of the displayed in-play score.
+
+## 🗄️ Data Architecture
+
+| Table / view | Purpose |
+|---|---|
+| `teams` | Team id, name, short name, TLA and crest URL |
+| `matches` | Tournament match records and score fields |
+| `scorers` | Player goal totals |
+| `match_details` | View joining matches with home and away team details, plus derived `winner_team_id` |
+| `scorer_details` | View joining scorers with team metadata and crest |
+
+### Match results view
+
+`match_details` provides a frontend-friendly match row by joining `matches` with `teams`.
+
+Its `winner_team_id` is derived in SQL:
+
+- A finished normal-time or extra-time game uses the final in-play score.
+- A penalty shootout uses the penalty score.
+- A drawn group-stage game has no winner.
+
+The group stage contains 72 games: 52 have a winner and 20 are draws.
+
+### Adapter layer
+
+`src/lib/matches.ts` maps Supabase rows to the existing frontend `Match` type through `toMatch()`.
+
+This preserves the existing `MatchCard` and `formatScore` components while moving queries from the football-data API to Supabase.
+
+### Data limitations
+
+The free football-data.org plan does not include squad and coach data from `/teams/{id}`. Therefore, the Team page intentionally hides Formation, Coach and Squad sections rather than showing unavailable or empty data.
 
 ## 🛠️ Tech Stack
 
 | Tool | Purpose |
-|------|---------|
+|---|---|
 | React 19 | UI framework |
 | TypeScript | Type safety |
-| Vite | Build tool & dev server |
+| Vite | Build tool and development server |
 | React Router v7 | Client-side routing |
-| football-data.org API | Live match data |
-| Google Gemini API | AI match insights |
+| Supabase Postgres | Tournament database and browser data API |
+| football-data.org API | Remaining live football data |
 | Vitest | Unit testing |
-| Vercel | Deployment & API proxies |
+| Vercel | Deployment and football-data proxy |
 
 ## 📦 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
-- A free API key from [football-data.org](https://www.football-data.org)
-- A Gemini API key from [Google AI Studio](https://aistudio.google.com) (for Match Insight)
+- A Supabase project with the required tables, views and read policies
+- A football-data.org API key for pages that still use its API
 
 ### Installation
 
@@ -65,40 +98,26 @@ npm install
 
 ### Environment Variables
 
-Create a `.env` file at the root:
+Create a `.env` file in the project root:
 
 ```env
-VITE_API_KEY=your_football_data_api_key
-GEMINI_API_KEY=your_gemini_api_key
+# Used by the Vite development proxy for football-data.org
+FOOTBALL_API_KEY=your_football_data_api_key
+
+# Public Supabase project credentials, used by the browser client
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 | Variable | Used by | Notes |
-|----------|---------|-------|
-| `VITE_API_KEY` | Browser + `api/football.ts` | Sent as `X-Auth-Token` to football-data.org |
-| `GEMINI_API_KEY` | `api/gemini.ts` (server only) | Never bundled into the client |
+|---|---|---|
+| `FOOTBALL_API_KEY` | Local Vite proxy | Sent as `X-Auth-Token` to football-data.org |
+| `VITE_SUPABASE_URL` | Supabase browser client | Safe to expose; identifies the Supabase project |
+| `VITE_SUPABASE_ANON_KEY` | Supabase browser client | Safe to expose only with correct Row Level Security policies |
 
 > **Note:** Restart the dev server after changing `.env`. Never commit `.env` to Git.
 
-On Vercel, set both variables in **Settings → Environment Variables**. The football proxy also accepts `API_KEY` if `VITE_API_KEY` is not set server-side.
-
-### Example `.env`
-Create a local `.env` from this example (do NOT commit your `.env`). You can also commit a trimmed `.env.example` with these keys.
-
-```env
-# Client (used by the browser via Vite)
-VITE_API_KEY=your_football_data_api_key
-
-# Server-only (preferred for production; used by the server proxy)
-API_KEY=your_football_data_api_key
-
-# Gemini (server-side key — keep secret)
-GEMINI_API_KEY=your_gemini_api_key
-
-# Optional: Vite dev plugin can also read this
-VITE_GEMINI_API_KEY=your_gemini_api_key
-```
-
-Note: `VITE_`-prefixed variables are exposed to the client by Vite — keep only non-sensitive values there. Prefer `API_KEY` and `GEMINI_API_KEY` for server-only secrets.
+For production, set the football-data key and Supabase variables in **Vercel → Project → Settings → Environment Variables**.
 
 ### Run locally
 
@@ -120,7 +139,7 @@ npm run build
 
 ## 📁 Project Structure
 
-```
+```text
 .
 ├── README.md
 ├── index.html
@@ -129,90 +148,68 @@ npm run build
 ├── tsconfig.app.json
 ├── tsconfig.node.json
 ├── vite.config.ts
-├── vite.geminiDevPlugin.ts
 ├── vitest.config.ts
 ├── vercel.json
 ├── api/
-│   ├── football.ts             # Vercel serverless proxy → football-data.org
-│   └── gemini.ts               # Vercel serverless proxy → Google Gemini
-├── lib/
-│   └── geminiUpstream.ts       # Shared Gemini logic for local dev middleware
+│   └── football.ts                 # Vercel proxy → football-data.org
 ├── public/
-│   └── images/                 # screenshot and other assets
+│   └── images/                     # Screenshots and image assets
 └── src/
-	├── App.tsx
-	├── main.tsx
-	├── setupTests.ts
-	├── api/
-	│   └── footballClient.ts   # Browser helper — calls /api/football
-	├── assets/
-	├── components/
-	│   ├── ChampionsPodium.tsx
-	│   ├── Footer.tsx
-	│   ├── GroupTable.tsx
-	│   ├── Header.tsx
-	│   ├── KnockoutBracket.tsx
-	│   ├── MatchCard.tsx
-	│   ├── Navbar.tsx
-	│   ├── SearchBar.tsx
-	│   └── TeamFormation.tsx
-	│   └── ai/
-	│       ├── AIFloatingButton.tsx
-	│       ├── AIResultCard.tsx
-	│       └── MatchInsightButton.tsx
-	├── pages/
-	│   ├── About.tsx
-	│   ├── Fixtures.tsx
-	│   ├── Home.test.tsx
-	│   ├── Home.tsx
-	│   ├── OldHome.tsx
-	│   ├── Results.tsx
-	│   ├── Standings.tsx
-	│   └── TeamPage.tsx
-	├── services/
-	│   └── geminiService.ts     # Calls /api/gemini + client-side caching
-	├── styles/
-	│   ├── About.css
-	│   ├── AIStyles.css
-	│   ├── ChampionsPodium.css
-	│   ├── Fixtures.css
-	│   ├── Footer.css
-	│   ├── Home.css
-	│   ├── index.css
-	│   └── ...
-	├── types/
-	│   ├── ai.ts
-	│   └── index.ts
-	└── utils/
-		├── formatScore.ts
-		├── matchInsightPrompt.ts
-		└── slides.ts
+    ├── App.tsx
+    ├── main.tsx
+    ├── api/
+    │   └── footballClient.ts       # Browser helper for /api/football
+    ├── components/
+    │   ├── ChampionsPodium.tsx
+    │   ├── Footer.tsx
+    │   ├── GroupTable.tsx
+    │   ├── Header.tsx
+    │   ├── KnockoutBracket.tsx
+    │   ├── MatchCard.tsx
+    │   ├── Navbar.tsx
+    │   └── SearchBar.tsx
+    ├── lib/
+    │   ├── matches.ts              # Supabase match, scorer and team queries
+    │   └── supabase.ts             # Supabase client
+    ├── pages/
+    │   ├── About.tsx
+    │   ├── Fixtures.tsx
+    │   ├── Home.tsx
+    │   ├── Results.tsx
+    │   ├── Standings.tsx
+    │   └── TeamPage.tsx
+    ├── styles/
+    │   └── ...
+    ├── types/
+    │   ├── db.ts                   # Supabase row types
+    │   └── index.ts                # Frontend types
+    └── utils/
+        ├── formatScore.ts
+        └── slides.ts
 ```
 
-## 🔑 APIs
+## 🔑 Data Sources
 
-Both external APIs are proxied through `/api/*` so keys stay off the public client where possible.
+### Supabase
 
-| Proxy | Server file | Client helper | Upstream |
-|-------|-------------|---------------|----------|
-| `/api/football/*` | `api/football.ts` | `src/api/footballClient.ts` | football-data.org v4 |
-| `POST /api/gemini` | `api/gemini.ts` | `src/services/geminiService.ts` | Google Gemini |
+Supabase powers the Home dashboard, Results page and Team page through browser-readable views and tables.
 
-- **Local dev:** Vite proxies `/api/football` to football-data.org; a dev middleware handles `/api/gemini`
-- **Production:** Vercel runs `api/football.ts` and `api/gemini.ts` as serverless functions
+- `match_details` supplies match lists, knockout bracket data, latest results and team match history.
+- `scorer_details` supplies the Home top-scorers list and each team's scorers.
+- `teams` supplies team identity data for Team pages.
 
-See [API_ENDPOINTS.md](API_ENDPOINTS.md) for the full list of endpoints used in this project.
+### football-data.org
 
-### Football data
-This project uses the free tier of [football-data.org](https://www.football-data.org).
-Rate limit: ~10 requests/minute — avoid hammering the API during development.
+The project uses the football-data.org free tier for data that has not yet been migrated to Supabase.
 
-### Gemini (AI Match Insight)
-Match insights use the [Google Gemini API](https://ai.google.dev) via the `/api/gemini` proxy.
+- **Local development:** Vite proxies `/api/football/*` to football-data.org.
+- **Production:** Vercel runs `api/football.ts` as a serverless proxy.
+- Free-tier rate limit: approximately 10 calls per minute.
 
-- Model: `gemini-2.5-flash`
-- Free/prepaid tiers have request and billing limits — click one match at a time while testing
+## License
+
+This project is for educational and portfolio purposes.
 
 ---
 
-Built by [Mayuree Reunsati](https://github.com/mareerray) · grit:lab Åland June 2026
+Built by [Mayuree Reunsati](https://github.com/mareerray) · grit:lab Åland · June - October 2026

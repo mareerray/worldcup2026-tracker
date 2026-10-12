@@ -29,7 +29,6 @@ dist-ssr
 !.env.example
 .vercel
 
-.API_ENDPOINTS.md
 .ROUND16.md
 .SUPABASE.md
 .ANALYTICS.md

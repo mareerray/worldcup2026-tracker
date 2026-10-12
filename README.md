@@ -249,7 +249,7 @@ When available, the selected dataset will update the Team Statistics table, Top 
 ### Installation
 
 ```bash
-git clone [https://github.com/mareerray/worldcup2026-tracker.git](https://github.com/mareerray/worldcup2026-tracker.git)
+git clone https://github.com/mareerray/worldcup2026-tracker.git
 cd worldcup2026-tracker
 npm install
 ```

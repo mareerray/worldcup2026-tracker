@@ -17,6 +17,7 @@ Match, team, scorer and analytics data is stored in **Supabase Postgres** and re
   - [Analytics Views](#analytics-views)
   - [Adapter Layer](#adapter-layer)
   - [Data Limitations](#data-limitations)
+  - [Security](#security)
   - [Planned Analytics Improvement](#planned-analytics-improvement)
 - [Tech Stack](#️-tech-stack)
 - [Getting Started](#-getting-started)
@@ -30,6 +31,7 @@ Match, team, scorer and analytics data is stored in **Supabase Postgres** and re
 - [Data Sources](#-data-sources)
   - [Supabase](#supabase)
   - [football-data.org](#football-dataorg)
+- [What I Learned](#-what-i-learned)
 - [License](#license)
 
 ## 🚀 Live Demo
@@ -81,9 +83,14 @@ Match, team, scorer and analytics data is stored in **Supabase Postgres** and re
 
 | Table / view | Purpose |
 |---|---|
+| `raw_api_responses` | Raw JSON saved from football-data.org (private, no public policy) |
 | `teams` | Team id, name, short name, TLA and crest URL |
 | `matches` | Tournament match records and stored score fields |
 | `scorers` | Player goal totals |
+| `standings` | Standings rows from the API, stored per group |
+| `team_recaps` | Reserved for AI-generated team summaries (not used yet) |
+| `team_groups` | View: which group each team plays in, from group-stage matches |
+| `group_standings` | View: group tables with calculated group position |
 | `match_details` | View joining matches with home and away team details, plus derived `winner_team_id` |
 | `scorer_details` | View joining scorers with team metadata and crest |
 | `match_analytics` | Analytics-ready match view with normalised in-play goal fields |
@@ -91,6 +98,8 @@ Match, team, scorer and analytics data is stored in **Supabase Postgres** and re
 | `stage_analytics` | One analytics row per tournament stage |
 | `team_performance` | One all-matches performance row per team |
 | `highest_scoring_matches` | Top 10 finished matches ranked by total in-play goals |
+
+The full SQL is in [`sql/`](sql/).
 
 ### Match results view
 
@@ -206,6 +215,14 @@ This preserves the existing `MatchCard` and `formatScore` components while movin
 
 The free football-data.org plan does not include squad and coach data from `/teams/{id}`. Therefore, the Team page intentionally hides Formation, Coach and Squad sections rather than showing unavailable or empty data.
 
+### Security
+
+- Row Level Security is enabled on all tables.
+- Tournament tables have a public read-only (`SELECT`) policy.
+- `raw_api_responses` has no policy, so it cannot be read with the public key.
+- There are no insert, update or delete policies, so the browser cannot change data.
+- Policies are in [`sql/policies.sql`](sql/policies.sql).
+
 ### Planned analytics improvement
 
 The current `team_performance` view combines group-stage and knockout matches.
@@ -243,7 +260,7 @@ When available, the selected dataset will update the Team Statistics table, Top 
 ### Prerequisites
 
 - Node.js 18+
-- A Supabase project with the required tables, views and read policies
+- A Supabase project. Create the database by running `sql/schema.sql`, then `sql/policies.sql`
 - A football-data.org API key for pages that still use its API
 
 ### Installation
@@ -315,6 +332,10 @@ npm run build
 │   └── football.ts                 # Vercel proxy → football-data.org
 ├── public/
 │   └── images/                     # Screenshots and image assets
+├── sql/
+│   ├── README.md
+│   ├── schema.sql                  # Tables and views
+│   └── policies.sql                # Row Level Security
 └── src/
     ├── App.tsx
     ├── main.tsx
@@ -359,8 +380,9 @@ npm run build
 
 ### Supabase
 
-Supabase powers the Home dashboard, Results page, Team page and Analytics page through browser-readable tables and views.
+Supabase powers the Home dashboard, Standings, Results, Team page and Analytics page through browser-readable tables and views.
 
+- `group_standings` supplies the group tables on the Standings page.
 - `match_details` supplies match lists, knockout bracket data, latest results and team match history.
 - `scorer_details` supplies the Home top-scorers list and each team’s scorers.
 - `teams` supplies team identity data for Team pages.
@@ -377,10 +399,38 @@ The project uses the football-data.org free tier for data that has not yet been 
 
 [↑ Back to contents](#-table-of-contents)
 
+## 💡 What I Learned
+
+### How I used AI
+AI helped me design the Supabase tables, views and many of the SQL queries.
+After the first version worked, I went back to understand each part: what the
+football-data.org API returns, how each JSON field became a table column, and
+why each view exists.
+
+### What I learned by reviewing the schema
+- **API to database:** The API returns nested JSON (a match has `homeTeam` and
+  `score` objects inside it). In the database this became flat columns, with
+  teams joined back in through views.
+- **Layers:** The analytics views build on each other: `matches` →
+  `match_analytics` → summary views. Cleaning the data once keeps the other
+  views simple.
+- **Business rules matter:** Penalty-shootout kicks are not in-play goals.
+  Without separating them, goals per match and rankings would be wrong.
+- **Choosing the grain:** `team_performance` has one row per team and
+  `stage_analytics` one row per stage. Deciding what one row means comes first.
+- **Security:** The public key is safe in the browser only because Row Level
+  Security is on and tables allow read-only access.
+- **Free tier limits:** The free API has a rate limit and no squad or coach
+  data, so most data now comes from Supabase and proxy responses are cached.
+
+### What I would do next
+Rebuild the analytics layer in Snowflake as a practice project to learn data
+warehousing and compare it with Postgres views.
+
 ## License
 
 This project is for educational and portfolio purposes.
 
 ---
 
-Built by [Mayuree Reunsati](https://github.com/mareerray) · grit:lab Åland · June–October 2026
+Built by [Mayuree Reunsati](https://github.com/mareerray) · Mariehamn, Åland · June–October 2026

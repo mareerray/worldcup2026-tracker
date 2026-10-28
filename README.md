@@ -4,6 +4,17 @@ A World Cup 2026 tournament dashboard built with React, TypeScript and Vite.
 
 Match, team, scorer and analytics data is stored in **Supabase Postgres** and read through SQL views. The app also uses the [football-data.org](https://www.football-data.org) API for pages that have not yet been migrated to Supabase.
 
+## 🚀 Live Demo
+
+[worldcup2026-tracker-app.vercel.app](https://worldcup2026-tracker-app.vercel.app)
+
+## Preview
+<img
+  src="docs/WC2026tracker-demo.gif"
+  alt=""
+  width="700"
+/>
+
 ## 📚 Table of Contents
 
 - [Live Demo](#-live-demo)
@@ -34,13 +45,9 @@ Match, team, scorer and analytics data is stored in **Supabase Postgres** and re
 - [What I Learned](#-what-i-learned)
 - [License](#license)
 
-## 🚀 Live Demo
-
-[worldcup2026-tracker-app.vercel.app](https://worldcup2026-tracker-app.vercel.app)
-
-<div>
+<!-- <div>
   <img src="public/images/screenshot_2.png" width="700" alt="FIFA World Cup 2026 Tracker screenshot">
-</div>
+</div> -->
 
 [↑ Back to contents](#-table-of-contents)
 

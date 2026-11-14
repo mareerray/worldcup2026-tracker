@@ -314,10 +314,6 @@ export async function getTeam(teamId: number): Promise<Team> {
     const teamMap = await getTeamMap();
     const team = teamMap.get(teamId);
 
-    console.log("Requested team ID:", teamId);
-    console.log("Team map size:", teamMap.size);
-    console.log("Found team:", teamMap.get(teamId));
-
     if (!team) {
         throw new Error(`Team with id ${teamId} was not found.`);
     }

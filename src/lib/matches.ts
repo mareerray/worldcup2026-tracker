@@ -231,7 +231,12 @@ export async function getTeamFinishedMatches(
     teamId: number,
     limit = 10
 ): Promise<Match[]> {
-    const rows = await loadCsv<MatchDetailRow>("matches.csv");
+    const [matchRows, teamMap] = await Promise.all([
+        loadCsv<MatchDetailRow>("matches.csv"),
+        getTeamMap(),
+    ]);
+
+    const rows = enrichMatchRows(matchRows, teamMap);
 
     return rows
         .filter(
@@ -272,31 +277,46 @@ export async function getTeamUpcomingMatch(
 export async function getTeamScorers(
     teamId: number
 ): Promise<ScorerDetailRow[]> {
-    const rows = await loadCsv<ScorerDetailRow>("scorers.csv");
+    const [scorerRows, teamMap] = await Promise.all([
+        loadCsv<ScorerDetailRow>("scorers.csv"),
+        getTeamMap(),
+    ]);
 
-    return rows
-        .filter(
-            (row: ScorerDetailRow) => Number(row.team_id) === teamId
-        )
-        .sort(
-            (a: ScorerDetailRow, b: ScorerDetailRow) => {
-                const goalDifference =
-                    Number(b.goals) - Number(a.goals);
+    const enrichedScorers = scorerRows
+        .filter((row) => Number(row.team_id) === teamId)
+        .map((row) => {
+            const team = teamMap.get(Number(row.team_id));
 
-                if (goalDifference !== 0) {
-                    return goalDifference;
-                }
+            return {
+                ...row,
+                team_name: team?.name ?? "",
+                team_short_name: team?.short_name ?? "",
+                team_tla: team?.tla ?? "",
+                team_crest: team?.crest_url ?? "",
+            } as ScorerDetailRow;
+        })
+        .sort((a, b) => {
+            const goalDifference = Number(b.goals) - Number(a.goals);
 
-                return String(a.player_name).localeCompare(
-                    String(b.player_name)
-                );
+            if (goalDifference !== 0) {
+                return goalDifference;
             }
-        );
+
+            return String(a.player_name).localeCompare(
+                String(b.player_name)
+            );
+        });
+
+    return enrichedScorers;
 }
 
 export async function getTeam(teamId: number): Promise<Team> {
     const teamMap = await getTeamMap();
     const team = teamMap.get(teamId);
+
+    console.log("Requested team ID:", teamId);
+    console.log("Team map size:", teamMap.size);
+    console.log("Found team:", teamMap.get(teamId));
 
     if (!team) {
         throw new Error(`Team with id ${teamId} was not found.`);

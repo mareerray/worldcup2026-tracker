@@ -1,67 +1,44 @@
-import { supabase } from './supabase'
+import { loadCsv } from "./localData";
 import type {
     TournamentOverview,
     StageAnalytics,
     TeamPerformance,
     HighestScoringMatch,
-} from '../types/analytics'
+} from "../types/analytics";
 
 export async function getTournamentOverview(): Promise<TournamentOverview[]> {
-    const { data, error } = await supabase
-        .from('tournament_overview')
-        .select('*')
-
-    if (error) throw error
-
-    return (data ?? []) as TournamentOverview[]
+    return loadCsv<TournamentOverview>("tournament-overview.csv");
 }
 
 export async function getStageAnalytics(): Promise<StageAnalytics[]> {
-    const { data, error } = await supabase
-        .from('stage_analytics')
-        .select('*')
-        .order('stage', { ascending: true })
+    const rows = await loadCsv<StageAnalytics>("stage-analytics.csv");
 
-    if (error) throw error
-
-    return (data ?? []) as StageAnalytics[]
+    return rows.sort(
+        (a: StageAnalytics, b: StageAnalytics) =>
+            String(a.stage).localeCompare(String(b.stage))
+    );
 }
 
 export async function getTeamPerformance(): Promise<TeamPerformance[]> {
-    const { data, error } = await supabase
-        .from('team_performance')
-        .select('*')
-        .order('performance_rank', { ascending: true })
+    const rows = await loadCsv<TeamPerformance>("team-performance.csv");
 
-    if (error) throw error
-
-    return (data ?? []) as TeamPerformance[]
+    return rows.sort(
+        (a: TeamPerformance, b: TeamPerformance) =>
+            Number(a.performance_rank) - Number(b.performance_rank)
+    );
 }
 
 export async function getHighestScoringMatches(
     limit = 10
 ): Promise<HighestScoringMatch[]> {
-    const { data, error } = await supabase
-        .from('highest_scoring_matches')
-        .select('*')
-        .order('match_rank', { ascending: true })
-        .limit(limit)
+    const rows = await loadCsv<HighestScoringMatch>(
+        "highest-scoring-matches.csv"
+    );
 
-    if (error) throw error
-
-    return (data ?? []) as HighestScoringMatch[]
+    return rows
+        .sort(
+            (a: HighestScoringMatch, b: HighestScoringMatch) =>
+                Number(a.match_rank) - Number(b.match_rank)
+        )
+        .slice(0, limit);
 }
-
-/*
-What this code does:
-
-- Ask Supabase for all columns from one view.
-
-- Wait for the answer.
-
-- If Supabase returns an error, stop and throw it.
-
-- If there is no data, return an empty array instead of undefined.
-
-- Return the rows with the correct TypeScript type.
-*/

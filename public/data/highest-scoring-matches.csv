@@ -1,0 +1,11 @@
+match_rank,id,utc_date,stage,duration,home_name,home_short_name,home_tla,home_crest,away_name,away_short_name,away_tla,away_crest,home_goals_in_play,away_goals_in_play,total_goals_in_play,home_pens,away_pens
+1,537389,2026-07-18 21:00:00+00,THIRD_PLACE,REGULAR,France,France,FRA,https://crests.football-data.org/773.svg,England,England,ENG,https://crests.football-data.org/770.svg,4,6,10,,
+2,537351,2026-06-14 17:00:00+00,GROUP_STAGE,REGULAR,Germany,Germany,GER,https://crests.football-data.org/759.svg,Curaçao,Curaçao,CUW,https://crests.football-data.org/curacao.svg,7,1,8,,
+3,537402,2026-06-28 02:00:00+00,GROUP_STAGE,REGULAR,Algeria,Algeria,ALG,https://crests.football-data.org/algeria.svg,Austria,Austria,AUT,https://crests.football-data.org/816.svg,3,3,6,,
+4,537409,2026-06-17 20:00:00+00,GROUP_STAGE,REGULAR,England,England,ENG,https://crests.football-data.org/770.svg,Croatia,Croatia,CRO,https://crests.football-data.org/799.svg,4,2,6,,
+5,537344,2026-06-24 22:00:00+00,GROUP_STAGE,REGULAR,Morocco,Morocco,MAR,https://crests.football-data.org/morocco.svg,Haiti,Haiti,HAI,https://crests.football-data.org/haiti.svg,4,2,6,,
+6,537358,2026-06-15 02:00:00+00,GROUP_STAGE,REGULAR,Sweden,Sweden,SWE,https://crests.football-data.org/792.svg,Tunisia,Tunisia,TUN,https://crests.football-data.org/tunisia.svg,5,1,6,,
+7,537359,2026-06-20 17:00:00+00,GROUP_STAGE,REGULAR,Netherlands,Netherlands,NED,https://crests.football-data.org/8601.svg,Sweden,Sweden,SWE,https://crests.football-data.org/792.svg,5,1,6,,
+8,537367,2026-06-27 03:00:00+00,GROUP_STAGE,REGULAR,New Zealand,New Zealand,NZL,https://crests.football-data.org/783.svg,Belgium,Belgium,BEL,https://crests.football-data.org/805.svg,1,5,6,,
+9,537336,2026-06-18 22:00:00+00,GROUP_STAGE,REGULAR,Canada,Canada,CAN,https://crests.football-data.org/canada.svg,Qatar,Qatar,QAT,https://crests.football-data.org/8030.svg,6,0,6,,
+10,537394,2026-06-23 00:00:00+00,GROUP_STAGE,REGULAR,Norway,Norway,NOR,https://crests.football-data.org/813.svg,Senegal,Senegal,SEN,https://crests.football-data.org/senegal.svg,3,2,5,,
